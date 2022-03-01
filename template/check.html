@@ -122,7 +122,7 @@
     const outputExpectedNode = result.querySelector(".output-expected");
     const outputGotNode = result.querySelector(".output-got");
     const outputGotNodeDiff = result.querySelector(".output-got-diff");
-    const diff = Diff.diffChars(
+    const diff = Diff.diffWordsWithSpace(
       outputExpectedNode.textContent,
       outputGotNode.textContent
     );
