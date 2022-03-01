@@ -72,10 +72,9 @@ pinky@cse.com;RachelRachelRachel</code></pre>
 </table>
 <script>
   async function downloadSuite(suiteName) {
-    const fileName = suiteName + ".zip";
     const el = document.createElement("a");
-    el.setAttribute("href", `/tests/${fileName}`);
-    el.setAttribute("download", fileName);
+    el.setAttribute("href", `/tests/${suiteName}`);
+    el.setAttribute("download", suiteName);
     el.style.display = "none";
     document.body.appendChild(el);
     el.click();
@@ -119,8 +118,8 @@ pinky@cse.com;RachelRachelRachel</code></pre>
     if (!file) return;
     formData.append("suite", file);
     const result = await Swal.fire({
-      title: `Upload ${file.name}?`,
-      text: "Bạn có muốn upload test suite (hãy chắc chắn nội dụng file zip chính xác)",
+      title: `Are you sủe?`,
+      text: `Bạn có muốn upload test suite ${file.name}? (hãy chắc chắn nội dụng file zip chính xác)`,
       icon: "info",
       showCancelButton: true,
       confirmButtonText: "Tới luôn đê!",

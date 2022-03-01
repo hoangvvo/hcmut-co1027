@@ -30,7 +30,6 @@ func GetSuites() ([]TestSuite, error) {
 			return nil, err
 		}
 		name := entry.Name()
-		name = name[0 : len(name)-4]
 		results = append(results, TestSuite{
 			Name:      name,
 			CreatedAt: info.ModTime(),
@@ -40,10 +39,11 @@ func GetSuites() ([]TestSuite, error) {
 }
 
 func DeleteSuite(name string) error {
+	name = filepath.Base(name)
 	if name == "case-1" {
 		return errors.New("không được xóa cái này :)")
 	}
-	return os.Remove(filepath.Join(conf.CASEDIR, name+".zip"))
+	return os.Remove(filepath.Join(conf.CASEDIR, name))
 }
 
 func RunSuite(suiteName, answer string) ([]Result, error) {
@@ -53,7 +53,8 @@ func RunSuite(suiteName, answer string) ([]Result, error) {
 	}
 	defer os.Remove(dirExtract)
 
-	_, err = unzip.New().Extract(filepath.Join(conf.CASEDIR, suiteName+".zip"), dirExtract)
+	suiteName = filepath.Base(suiteName)
+	_, err = unzip.New().Extract(filepath.Join(conf.CASEDIR, suiteName), dirExtract)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +79,7 @@ func RunSuite(suiteName, answer string) ([]Result, error) {
 }
 
 func AddSuite(fileName string, file multipart.File) error {
-	suiteName := fileName[0 : len(fileName)-4]
+	suiteName := fileName
 	if _, err := os.Stat(filepath.Join(conf.CASEDIR, fileName)); errors.Is(err, os.ErrNotExist) {
 		dst, err := os.Create(filepath.Join(conf.CASEDIR, fileName))
 		if err != nil {
