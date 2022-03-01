@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	cp "github.com/otiai10/copy"
 )
@@ -20,6 +21,12 @@ type Result struct {
 	Error      string
 	TestOutput string
 	MyOutput   string
+}
+
+func preformat(output string) string {
+	output = strings.TrimSpace(output)
+	output = strings.Trim(output, "\n")
+	return output
 }
 
 func CompileAndRun(caseDirs []string, answer string) ([]Result, error) {
@@ -72,14 +79,14 @@ func CompileAndRun(caseDirs []string, answer string) ([]Result, error) {
 			return results, err
 		}
 
-		result.TestOutput = string(testOutput)
+		result.TestOutput = preformat(string(testOutput))
 
 		output, err := cmdRun.Output()
 		if err != nil {
 			result.Error = fmt.Errorf("%w: %s", err, stderr.String()).Error()
 		} else {
-			result.MyOutput = string(output)
-			if string(result.MyOutput) != string(result.TestOutput) {
+			result.MyOutput = preformat(string(output))
+			if strings.Compare(string(result.MyOutput), string(result.TestOutput)) != 0 {
 				result.Error = ErrResultMismatch.Error()
 			}
 		}

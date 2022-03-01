@@ -7,7 +7,8 @@
       Nhập code của <code>studyInPink2.h</code> để chấm bài. Bài làm sẽ được xóa
       sau khi xử lý xong.
     </p>
-    <textarea id="answer" name="answer" rows="6" required>{{ if .PrevAnswer }}{{ .PrevAnswer }}{{ end }}</textarea
+    <textarea id="answer" name="answer" rows="6" required>
+{{ if .PrevAnswer }}{{ .PrevAnswer }}{{ end }}</textarea
     >
   </div>
   <div>
@@ -34,6 +35,10 @@
     .ResultStat.Percentage }}%)
   </p>
   <h4>Incorrect test cases</h4>
+  <div>
+    <input type="checkbox" id="show-diff" />
+    <label for="show-diff">Show differences</label>
+  </div>
   <table>
     <thead>
       <tr>
@@ -44,10 +49,13 @@
     </thead>
     <tbody>
       {{ range .Results }}
-      <tr>
+      <tr class="result-each">
         <td>{{ .Name }}</td>
-        <td class="output">{{ .TestOutput }}</td>
-        <td class="output">{{ .MyOutput }}</td>
+        <td class="output output-expected">{{ .TestOutput }}</td>
+        <td>
+          <div class="output output-got">{{ .MyOutput }}</div>
+          <div class="output output-got-diff"></div>
+        </td>
       </tr>
       {{ end }}
     </tbody>
@@ -76,6 +84,15 @@
   #result .result-stat {
     color: var(--success);
   }
+  #result .output-got-diff {
+    display: none;
+  }
+  #result.diff-visible .output-got-diff {
+    display: block;
+  }
+  #result.diff-visible .output-got {
+    display: none;
+  }
 </style>
 <script>
   let loading = false;
@@ -86,4 +103,38 @@
     }
   };
 </script>
-{{end}}
+{{if .ResultStat}}
+<script src="https://cdn.jsdelivr.net/npm/diff@5.0.0/dist/diff.min.js"></script>
+<script>
+  const showDiffCb = document.querySelector("#show-diff");
+  const resultNode = document.querySelector("#result");
+  showDiffCb.addEventListener("change", (event) => {
+    if (event.currentTarget.checked) {
+      resultNode.classList.add("diff-visible");
+    } else {
+      resultNode.classList.remove("diff-visible");
+    }
+  });
+  const resultList = document.querySelectorAll(".result-each");
+  resultList.forEach((result) => {
+    const outputExpectedNode = result.querySelector(".output-expected");
+    const outputGotNode = result.querySelector(".output-got");
+    const outputGotNodeDiff = result.querySelector(".output-got-diff");
+    const diff = Diff.diffChars(
+      outputExpectedNode.textContent,
+      outputGotNode.textContent
+    );
+    const fragment = document.createDocumentFragment();
+    diff.forEach((part) => {
+      // green for additions, red for deletions
+      // grey for common parts
+      const color = part.added ? "#8bc34a" : part.removed ? "#f44336" : "transparent";
+      span = document.createElement("span");
+      span.style.background = color;
+      span.appendChild(document.createTextNode(part.value));
+      fragment.appendChild(span);
+    });
+    outputGotNodeDiff.appendChild(fragment);
+  });
+</script>
+{{end}} {{end}}
