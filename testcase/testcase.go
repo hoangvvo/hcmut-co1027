@@ -40,7 +40,7 @@ func GetSuites() ([]TestSuite, error) {
 
 func DeleteSuite(name string) error {
 	name = filepath.Base(name)
-	if name == "case-1" {
+	if name == "case-1.zip" {
 		return errors.New("không được xóa cái này :)")
 	}
 	return os.Remove(filepath.Join(conf.CASEDIR, name))
