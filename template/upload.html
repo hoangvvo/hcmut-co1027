@@ -11,16 +11,23 @@
 </form>
 <h3>Hướng dẫn tạo test suite</h3>
 <a href="/tests/case-1.zip" download="case-1.zip">Tải test suite mẫu</a>
-<h4>Cách 1: Sử dụng main.cpp được chỉnh sửa</h4>
+
+<p>
+  Mình có chuẩn bị một file <code>main.cpp</code> có thể ghi kết quả output và
+  copy các file input vào một thư mục. Các thư mục này có thể được zip lại và
+  upload làm test suite.
+</p>
 
 <ul>
   <li>
-    Thay thế nội dung <code>main.cpp</code> bằng code ở địa chỉ
-    <a target="_blank" href="https://gist.github.com/hoangvvo/2407c50e2969d205bac9599d46c1c4a5"
-      >https://gist.github.com/hoangvvo/2407c50e2969d205bac9599d46c1c4a5</a
+    Thay thế nội dung <code>main.cpp</code> bằng code trong file
+    <a
+      target="_blank"
+      href="https://gist.github.com/hoangvvo/2407c50e2969d205bac9599d46c1c4a5#file-main-write-cpp"
+      ><code>main-write.cpp</code></a
     >.
   </li>
-  <li>Chỉnh sửa các file input</li>
+  <li>Chỉnh lại các file input</li>
   <li>
     Chạy chương trình, nhập số tt test N. Sau khi chạy, code sẽ tạo một folder
     có tên <code>test"N"</code>
@@ -31,44 +38,17 @@
   </li>
 </ul>
 
-<h4>Cách 2: Tự tạo test suite</h4>
 <p>
-  Một test suite sẽ bao gồm nhiều test case. Mỗi test case sẽ được chứa trong
-  một folder (tên folder sẽ được dùng làm tên case). Các folder phải được nén
-  dưới dạng file <code>zip</code>.
+  Ngoài ra các bạn có thể xem qua file
+  <a
+    target="_blank"
+    href="https://gist.github.com/hoangvvo/2407c50e2969d205bac9599d46c1c4a5#file-main-cpp"
+    ><code>main.cpp</code></a
+  >
+  web app sử dụng để chấm bài.
 </p>
-<p>Trong mỗi folder phải có những file sau:</p>
-<ul>
-  <li>input1.txt</li>
-  <li>tc1-file-ntb1.txt</li>
-  <li>tc1-file-ntb2.txt</li>
-  <li>tc1-file-ntb3.txt</li>
-  <li>tc1-file-tag.txt</li>
-</ul>
-<p>Các file trên có thể được đổi tên tùy trường hợp.</p>
-Ngoài ra test suite còn phải chứa một file tên <code>result.txt</code>, chứa nội
-dung stdout sau khi chạy file.
-<a
-  href="http://e-learning.hcmut.edu.vn/mod/folder/view.php?id=796842"
-  target="_blank"
-  >main.cpp gốc</a
->. Ví dụ:
+(file này có output như file trên nhưng in ra màn hình thay vì viết vào file)
 
-<pre><code>tc1-file-ntb1.txt
-tc1-file-ntb2.txt
-tc1-file-ntb3.txt
-(2,0)-(2,1)
-RRRUDL
-tc1-file-tag.txt
-Rachel
-pwd1: 0101000002
-pwd2: 1219999999
-pwd3: 9931333333
-List passwords: 0101000002;1219999999;9931333333;1310000002;9042333335;0250333333;0351333335;0351333335;0452333337
-Can reach: 0
-outTimes: 28;42
-outCatchUps: N;N
-pinky@cse.com;RachelRachelRachel</code></pre>
 <h2>Test suite đã được upload</h2>
 <blockquote>
   Vui lòng chỉ xóa nếu test suite là của bạn hoặc đã được người upload cho phép!
@@ -164,11 +144,7 @@ pinky@cse.com;RachelRachelRachel</code></pre>
         text: result.value.error,
       });
     } else {
-      await Swal.fire(
-        "Upload thành công!",
-        "Cảm ơn bạn đã upload bộ test",
-        "success"
-      );
+      await Swal.fire("Upload thành công!", "Thank you", "success");
       location.reload();
     }
   };
