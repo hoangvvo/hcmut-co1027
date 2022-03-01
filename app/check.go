@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"time"
 
 	"github.com/hoangvvo/hcmut-co1027/testcase"
 	"github.com/julienschmidt/httprouter"
@@ -20,9 +21,10 @@ type DataCheck struct {
 }
 
 type ResultStat struct {
-	Total      int
-	Correct    int
-	Percentage string
+	Total         int
+	Correct       int
+	Percentage    string
+	ExecutionTime int64
 }
 
 func DoCheck(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -33,7 +35,12 @@ func DoCheck(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	answer := r.FormValue("answer")
 	suiteName := r.FormValue("suite")
+
+	executionTimeStart := time.Now()
+
 	results, err := testcase.RunSuite(suiteName, answer)
+
+	executionTimeEnd := time.Now()
 
 	var incorrectResults []testcase.Result
 	for _, result := range results {
@@ -53,9 +60,10 @@ func DoCheck(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		Error:   err,
 		Results: incorrectResults,
 		ResultStat: &ResultStat{
-			Total:      total,
-			Correct:    correctCount,
-			Percentage: percentage,
+			Total:         total,
+			Correct:       correctCount,
+			Percentage:    percentage,
+			ExecutionTime: executionTimeEnd.UnixMilli() - executionTimeStart.UnixMilli(),
 		},
 		PrevAnswer: &answer,
 	}); err != nil {

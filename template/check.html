@@ -32,7 +32,7 @@
   <h2>Result</h2>
   <p class="result-stat">
     Passed {{ .ResultStat.Correct }}/{{ .ResultStat.Total }} tests ({{
-    .ResultStat.Percentage }}%)
+    .ResultStat.Percentage }}%). Took {{ .ResultStat.ExecutionTime }}ms.
   </p>
   <h4>Incorrect test cases</h4>
   <div>
@@ -96,14 +96,16 @@
 </style>
 <script>
   let loading = false;
-  form.onsubmit = async function submit(event) {
-    if (loading === true) return event.preventDefault();
-    else {
+  const form = document.querySelector("#form");
+  form.onsubmit = function submit(event) {
+    if (loading === true) {
+      event.preventDefault();
+    } else {
       loading = true;
     }
   };
 </script>
-{{if .ResultStat}}
+{{if and (.ResultStat) (not .Error) }}
 <script src="https://cdn.jsdelivr.net/npm/diff@5.0.0/dist/diff.min.js"></script>
 <script>
   const showDiffCb = document.querySelector("#show-diff");
@@ -128,7 +130,11 @@
     diff.forEach((part) => {
       // green for additions, red for deletions
       // grey for common parts
-      const color = part.added ? "#8bc34a" : part.removed ? "#f44336" : "transparent";
+      const color = part.added
+        ? "#8bc34a"
+        : part.removed
+        ? "#f44336"
+        : "transparent";
       span = document.createElement("span");
       span.style.background = color;
       span.appendChild(document.createTextNode(part.value));
