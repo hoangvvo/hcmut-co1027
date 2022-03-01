@@ -4,10 +4,34 @@
 <form id="form">
   <input type="file" accept=".zip" name="fileSuite" required />
   <button>Upload</button>
-  <p>Note: Nên đặt tên theo cú pháp "tencuaban-tentestcase.zip" để mọi người biết test suite của ai</p>
+  <p>
+    Note: Nên đặt tên theo cú pháp "tencuaban-tentestcase.zip" để mọi người biết
+    test suite của ai
+  </p>
 </form>
 <h3>Hướng dẫn tạo test suite</h3>
 <a href="/tests/case-1.zip" download="case-1.zip">Tải test suite mẫu</a>
+<h4>Cách 1: Sử dụng main.cpp được chỉnh sửa</h4>
+
+<ul>
+  <li>
+    Thay thế nội dung <code>main.cpp</code> bằng code ở địa chỉ
+    <a target="_blank" href="https://pastebin.com/BjbikdTP"
+      >https://pastebin.com/BjbikdTP</a
+    >.
+  </li>
+  <li>Chỉnh sửa các file input</li>
+  <li>
+    Chạy chương trình, nhập số tt test N. Sau khi chạy, code sẽ tạo một folder
+    có tên <code>test"N"</code>
+  </li>
+  <li>
+    Lặp lại các bước trên. Sau đó nén các thư mục <code>test"N"</code> vào một
+    file zip. Upload file đó!
+  </li>
+</ul>
+
+<h4>Cách 2: Tự tạo test suite</h4>
 <p>
   Một test suite sẽ bao gồm nhiều test case. Mỗi test case sẽ được chứa trong
   một folder (tên folder sẽ được dùng làm tên case). Các folder phải được nén
