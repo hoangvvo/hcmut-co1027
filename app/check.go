@@ -25,6 +25,7 @@ type ResultStat struct {
 	Correct       int
 	Percentage    string
 	ExecutionTime int64
+	TestSuite     string
 }
 
 func DoCheck(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -64,6 +65,7 @@ func DoCheck(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			Correct:       correctCount,
 			Percentage:    percentage,
 			ExecutionTime: executionTimeEnd.UnixMilli() - executionTimeStart.UnixMilli(),
+			TestSuite:     suiteName,
 		},
 		PrevAnswer: &answer,
 	}); err != nil {

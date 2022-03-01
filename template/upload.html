@@ -1,21 +1,21 @@
 {{template "base" .}} {{define "title"}}Upload{{end}} {{define "main"}}
-<h2>Upload test suite</h2>
+<h2>Upload bộ test</h2>
 <p>Upload file zip chứa nhiềù test case</p>
 <form id="form">
   <input type="file" accept=".zip" name="fileSuite" required />
   <button>Upload</button>
   <p>
     Note: Nên đặt tên theo cú pháp "tencuaban-tentestcase.zip" để mọi người biết
-    test suite của ai
+    bộ test của ai
   </p>
 </form>
-<h3>Hướng dẫn tạo test suite</h3>
-<a href="/tests/case-1.zip" download="case-1.zip">Tải test suite mẫu</a>
+<h3>Hướng dẫn tạo bộ test</h3>
+<a href="/tests/case-1.zip" download="case-1.zip">Tải bộ test mẫu</a>
 
 <p>
   Mình có chuẩn bị một file <code>main.cpp</code> có thể ghi kết quả output và
   copy các file input vào một thư mục. Các thư mục này có thể được zip lại và
-  upload làm test suite.
+  upload làm bộ test.
 </p>
 
 <ul>
@@ -49,9 +49,9 @@
 </p>
 (file này có output như file trên nhưng in ra màn hình thay vì viết vào file)
 
-<h2>Test suite đã được upload</h2>
+<h2>bộ test đã được upload</h2>
 <blockquote>
-  Vui lòng chỉ xóa nếu test suite là của bạn hoặc đã được người upload cho phép!
+  Vui lòng chỉ xóa nếu bộ test là của bạn hoặc đã được người upload cho phép!
 </blockquote>
 <table style="table-layout: auto">
   <thead>
@@ -87,7 +87,7 @@
   async function deleteSuite(suiteName) {
     const result = await Swal.fire({
       title: "Are you sủe?",
-      text: "Test suite này sẽ bị xóa mãi mãi!",
+      text: "bộ test này sẽ bị xóa mãi mãi!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -123,7 +123,7 @@
     formData.append("suite", file);
     const result = await Swal.fire({
       title: `Are you sủe?`,
-      text: `Bạn có muốn upload test suite ${file.name}? (hãy chắc chắn nội dụng file zip chính xác)`,
+      text: `Bạn có muốn upload bộ test ${file.name}? (hãy chắc chắn nội dụng file zip chính xác)`,
       icon: "info",
       showCancelButton: true,
       confirmButtonText: "Tới luôn đê!",
