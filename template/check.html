@@ -1,0 +1,89 @@
+{{template "base" .}} {{define "title"}}Check{{end}} {{define "main"}}
+<h2>Chấm bài</h2>
+<form id="form" method="post" action="/check">
+  <div>
+    <label for="answer">Bài làm</label>
+    <p>
+      Nhập code của <code>studyInPink2.h</code> để chấm bài. Bài làm sẽ được xóa
+      sau khi xử lý xong.
+    </p>
+    <textarea id="answer" name="answer" rows="6" required>{{ if .PrevAnswer }}{{ .PrevAnswer }}{{ end }}</textarea
+    >
+  </div>
+  <div>
+    <label>Bộ test case (test suite)</label>
+    <p>Chọn bộ test case để sử dụng.</p>
+    <select name="suite" required>
+      {{ range .Suites }}
+      <option value="{{ .Name }}">{{ .Name }}</option>
+      {{ end }}
+    </select>
+  </div>
+  <button>Check</button>
+</form>
+{{ if .Error }}
+<div id="error">
+  <p>Không thể chạy test!</p>
+  <pre>{{ .Error }}</pre>
+</div>
+{{else if .ResultStat}}
+<div id="result">
+  <h2>Result</h2>
+  <p class="result-stat">
+    Passed {{ .ResultStat.Correct }}/{{ .ResultStat.Total }} tests ({{
+    .ResultStat.Percentage }}%)
+  </p>
+  <h4>Incorrect test cases</h4>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 64px">Name</th>
+        <th>Expected</th>
+        <th>Got</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range .Results }}
+      <tr>
+        <td>{{ .Name }}</td>
+        <td class="output">{{ .TestOutput }}</td>
+        <td class="output">{{ .MyOutput }}</td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ end }}
+<style>
+  #error p {
+    color: var(--danger);
+  }
+  #error pre {
+    height: 300px;
+    overflow: auto;
+    padding: 10px;
+    background-color: var(--background);
+  }
+  #result table,
+  th,
+  td {
+    border: 1px solid;
+  }
+  #result .output {
+    white-space: pre;
+    overflow-x: auto;
+  }
+  #result .result-stat {
+    color: var(--success);
+  }
+</style>
+<script>
+  let loading = false;
+  form.onsubmit = async function submit(event) {
+    if (loading === true) return event.preventDefault();
+    else {
+      loading = true;
+    }
+  };
+</script>
+{{end}}
