@@ -23,11 +23,42 @@
         --success: #0070f3;
       }
     </style>
+    <script>
+      (function (e, t, n, i, s, a, c) {
+        e[n] =
+          e[n] ||
+          function () {
+            (e[n].q = e[n].q || []).push(arguments);
+          };
+        a = t.createElement(i);
+        c = t.getElementsByTagName(i)[0];
+        a.src = s;
+        c.parentNode.insertBefore(a, c);
+      })(
+        window,
+        document,
+        "galite",
+        "script",
+        "https://cdn.jsdelivr.net/npm/ga-lite@2/dist/ga-lite.min.js"
+      );
+
+      galite("create", "305443376", "auto");
+      galite("send", "pageview");
+    </script>
   </head>
   <body>
     <header>
       <h1><a href="/">Assignment1</a></h1>
-      <p>Bộ chấm bài <a target="_blank" href="http://e-learning.hcmut.edu.vn/pluginfile.php/1969519/mod_resource/content/9/_212_CO1027__Assignment_1-2.pdf">assignment1</a> lớp CO1027 - KTLT. <a href="/check">Chấm bài</a> | <a href="/upload">Upload test case</a></p>
+      <p>
+        Bộ chấm bài
+        <a
+          target="_blank"
+          href="http://e-learning.hcmut.edu.vn/pluginfile.php/1969519/mod_resource/content/9/_212_CO1027__Assignment_1-2.pdf"
+          >assignment1</a
+        >
+        lớp CO1027 - KTLT. <a href="/check">Chấm bài</a> |
+        <a href="/upload">Upload test case</a>
+      </p>
     </header>
     <main>{{template "main" .}}</main>
     <footer>

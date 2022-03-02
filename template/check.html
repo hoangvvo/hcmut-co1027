@@ -11,10 +11,10 @@
 {{ if .PrevAnswer }}{{ .PrevAnswer }}{{ end }}</textarea
     >
   </div>
-  <div style="margin-top: 24px;">
+  <div style="margin-top: 24px">
     <label>Bộ test case</label>
     <p>Chọn bộ test case để sử dụng.</p>
-    <select name="suite" required>
+    <select id="select-suite" name="suite" required>
       {{ range .Suites }}
       <option value="{{ .Name }}">{{ .Name }}</option>
       {{ end }}
@@ -34,7 +34,11 @@
     Passed <b>{{ .ResultStat.Correct }}/{{ .ResultStat.Total }}</b> tests ({{
     .ResultStat.Percentage }}%). Took {{ .ResultStat.ExecutionTime }}ms.
   </blockquote>
-  <a href="/tests/{{ .ResultStat.TestSuite }}" download="{{ .ResultStat.TestSuite }}">Tải bộ test</a>
+  <a
+    href="/tests/{{ .ResultStat.TestSuite }}"
+    download="{{ .ResultStat.TestSuite }}"
+    >Tải bộ test</a
+  >
   <h4>Test case không chính xác</h4>
   <div>
     <input type="checkbox" id="show-diff" />
@@ -102,12 +106,21 @@
       event.preventDefault();
     } else {
       loading = true;
+      if (typeof galite !== "undefined") {
+        galite("send", "event", "check", "request", event.target.suite.value);
+      }
     }
   };
 </script>
 {{if and (.ResultStat) (not .Error) }}
 <script src="https://cdn.jsdelivr.net/npm/diff@5.0.0/dist/diff.min.js"></script>
 <script>
+  const selectedSuite = "{{ .ResultStat.TestSuite }}";
+  if (typeof galite !== "undefined") {
+    galite("send", "event", "check", "result", selectedSuite);
+  }
+  const selectNode = document.querySelector("#select-suite");
+  selectNode.value = selectedSuite;
   const showDiffCb = document.querySelector("#show-diff");
   const resultNode = document.querySelector("#result");
   showDiffCb.addEventListener("change", (event) => {
