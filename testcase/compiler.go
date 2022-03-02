@@ -51,7 +51,7 @@ func CompileAndRun(caseDirs []string, answer string, customMain []byte) ([]Resul
 	}
 	// compile file
 	var stderr bytes.Buffer
-	cmd := exec.Command("g++", "main.cpp", "-o", "main")
+	cmd := exec.Command("g++", "-std=c++11", "main.cpp", "-o", "main")
 	cmd.Dir = wd
 	cmd.Stderr = &stderr
 	if err = cmd.Run(); err != nil {
