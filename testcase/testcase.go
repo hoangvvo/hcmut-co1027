@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 
@@ -58,6 +59,9 @@ func RunSuite(suiteName, answer string) ([]Result, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// attempt to convert crlf to lf
+	exec.Command("bash", "-c", "dos2unix -o "+filepath.Join(dirExtract, "**/*.txt")).Run()
 
 	var caseDirs []string
 	entries, err := os.ReadDir(dirExtract)
