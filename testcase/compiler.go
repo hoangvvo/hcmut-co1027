@@ -29,7 +29,7 @@ func preformat(output string) string {
 	return output
 }
 
-func CompileAndRun(caseDirs []string, answer string) ([]Result, error) {
+func CompileAndRun(caseDirs []string, answer string, customMain []byte) ([]Result, error) {
 	var results []Result
 
 	wd, err := ioutil.TempDir(os.TempDir(), "testrun")
@@ -39,7 +39,10 @@ func CompileAndRun(caseDirs []string, answer string) ([]Result, error) {
 	}
 
 	// write main.cpp and studyInPink2
-	if err = os.WriteFile(filepath.Join(wd, "main.cpp"), mainCpp, 0644); err != nil {
+	if customMain == nil {
+		customMain = mainCpp
+	}
+	if err = os.WriteFile(filepath.Join(wd, "main.cpp"), customMain, 0644); err != nil {
 		return results, err
 	}
 

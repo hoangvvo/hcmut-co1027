@@ -13,11 +13,17 @@
 <a href="/tests/case-1.zip" download="case-1.zip">Tải bộ test mẫu</a>
 
 <p>
+  Một bộ test bao gồm nhiều test case. Mỗi test case sẽ được chứa trong một thư
+  mục. Mỗi thư mục test case cần có một file có tên <code>result.txt</code>, là
+  kết quả màn hình (stdout) sau khi chạy <code>main.cpp</code>.
+</p>
+
+<h4>Cách 1: Sử dụng <code>main.cpp</code> của app</h4>
+<p>
   Mình có chuẩn bị một file <code>main.cpp</code> có thể ghi kết quả output và
   copy các file input vào một thư mục. Các thư mục này có thể được zip lại và
   upload làm bộ test.
 </p>
-
 <ul>
   <li>
     Thay thế nội dung <code>main.cpp</code> bằng code trong file
@@ -37,7 +43,6 @@
     file zip. Upload file đó!
   </li>
 </ul>
-
 <p>
   Ngoài ra các bạn có thể xem qua file
   <a
@@ -45,9 +50,15 @@
     href="https://gist.github.com/hoangvvo/2407c50e2969d205bac9599d46c1c4a5#file-main-cpp"
     ><code>main.cpp</code></a
   >
-  web app sử dụng để chấm bài.
+  web app sử dụng để chấm bài. (file này có output như file trên nhưng in ra màn
+  hình thay vì viết vào file)
 </p>
-(file này có output như file trên nhưng in ra màn hình thay vì viết vào file)
+<h4>Cách 2: Sử dụng file main.cpp riêng</h4>
+App chấm bài hoạt động theo quy tắc so sánh output ra màn hình (stdout) sau khi
+chạy file <code>main.cpp</code>. Trong file zip, bạn có thể bỏ kèm một file
+<code>main.cpp</code> (phải nằm ngoài cùng). Chương trình sẽ chạy file đó và ghi
+lại kết quả màn hình, sau đó so sánh với file <code>result.txt</code> trong từng
+folder test case.
 
 <h2>bộ test đã được upload</h2>
 <blockquote>

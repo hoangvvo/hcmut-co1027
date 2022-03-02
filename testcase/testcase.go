@@ -65,6 +65,8 @@ func RunSuite(suiteName, answer string) ([]Result, error) {
 		return nil, err
 	}
 
+	var customMain []byte
+
 	for _, entry := range entries {
 		info, err := entry.Info()
 		if err != nil {
@@ -72,10 +74,15 @@ func RunSuite(suiteName, answer string) ([]Result, error) {
 		}
 		if info.IsDir() {
 			caseDirs = append(caseDirs, filepath.Join(dirExtract, entry.Name()))
+		} else if info.Name() == "main.cpp" {
+			customMain, err = os.ReadFile(filepath.Join(dirExtract, entry.Name()))
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
-	return CompileAndRun(caseDirs, answer)
+	return CompileAndRun(caseDirs, answer, customMain)
 }
 
 func AddSuite(fileName string, file multipart.File) error {
