@@ -14,7 +14,7 @@
     <p>Chọn bộ test case để sử dụng.</p>
     <select id="select-suite" name="suite" required>
       {{ range .Suites }}
-      <option value="{{ .Name }}">{{ .Name }}</option>
+      <option value="{{ .Name }}">{{ .Name }} ({{ .Total }} test cases)</option>
       {{ end }}
     </select>
   </div>
