@@ -2,6 +2,7 @@ package runner
 
 import (
 	"bytes"
+	"context"
 	_ "embed"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/hoangvvo/hcmut-co1027/conf"
 	cp "github.com/otiai10/copy"
@@ -68,12 +70,22 @@ func Run(runDir string, caseDirs []string) ([]Result, error) {
 		result.ResultExpected = preformat(string(testOutput))
 
 		// run file
+		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(conf.TimeoutSec)*time.Second)
+		defer cancel()
+
 		var stdErr bytes.Buffer
-		cmdRun := exec.Command("./main")
+		cmdRun := exec.CommandContext(ctx, "./main")
 		cmdRun.Dir = runDir
 		cmdRun.Stderr = &stdErr
 
 		output, err := cmdRun.Output()
+		if ctx.Err() == context.DeadlineExceeded {
+			// this means the user takes too long on one task
+			// and may take a long time for later tasks
+			// we consider just stop
+			return nil, ErrDeadlineExceeded
+		}
+
 		if err != nil {
 			result.Error = fmt.Errorf("%w: %s", err, stdErr.String()).Error()
 		} else {
