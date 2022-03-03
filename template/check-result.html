@@ -192,6 +192,10 @@
       resultStatsNode.textContent = `Passed ${correct}/${total} tests (${perc}%)`;
     }
     async function runCases(CaseNames, isRunAll = false) {
+      if (typeof galite !== "undefined") {
+        galite("send", "event", "check", "run", `${isRunAll ? "all" : "single"}`);
+      }
+
       if (loading) return;
       loading = true;
       NProgress.start();
@@ -253,6 +257,9 @@
     }
   
     async function closeTest() {
+      if (typeof galite !== "undefined") {
+        galite("send", "event", "check", "close");
+      }
       await fetch("/check/result", { method: "DELETE" });
       window.location.href = "/check";
     }
