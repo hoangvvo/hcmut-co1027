@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/NYTimes/gziphandler"
 	"github.com/hoangvvo/hcmut-co1027/app"
 	"github.com/hoangvvo/hcmut-co1027/conf"
 	"github.com/julienschmidt/httprouter"
@@ -40,7 +41,7 @@ func main() {
 	router.ServeFiles("/case-archives/*filepath", http.Dir(conf.CasesDir))
 
 	fmt.Printf("Starting server at port 8080\n")
-	if err := http.ListenAndServe(":8080", router); err != nil {
+	if err := http.ListenAndServe(":8080", gziphandler.GzipHandler(router)); err != nil {
 		log.Fatal(err)
 	}
 }

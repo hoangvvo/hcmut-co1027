@@ -7,3 +7,5 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/otiai10/copy v1.7.0
 )
+
+require github.com/NYTimes/gziphandler v1.1.1 // indirect
