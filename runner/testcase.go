@@ -65,6 +65,7 @@ func DeleteSuite(suiteName string) error {
 	}
 
 	suiteDir := filepath.Join(conf.SuitesDir, suiteName)
+	suiteZip := filepath.Join(conf.ArchiveDir, suiteName+".zip")
 
 	stat, err := os.Stat(suiteDir)
 	if err != nil {
@@ -74,6 +75,7 @@ func DeleteSuite(suiteName string) error {
 		return errors.New("not a directory")
 	}
 
+	os.Remove(suiteZip)
 	return os.RemoveAll(suiteDir)
 }
 
@@ -120,7 +122,17 @@ func AddSuite(fileName string, file multipart.File) error {
 	}
 
 	// attempt to convert crlf to lf
-	exec.Command("bash", "-c", "dos2unix -o "+filepath.Join(suiteDir, "**/*.txt")).Run()
+	// loop each dirs because arg can be very long for dos2unix
+	dirEntries, err := os.ReadDir(suiteDir)
+	if err != nil {
+		l.Println(err)
+	} else {
+		for _, entry := range dirEntries {
+			if entry.IsDir() {
+				exec.Command("bash", "-c", "dos2unix -o "+filepath.Join(suiteDir, entry.Name(), "*.txt")).Run()
+			}
+		}
+	}
 
 	l.Println("success")
 
