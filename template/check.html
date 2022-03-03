@@ -45,6 +45,7 @@
       event.preventDefault();
     } else {
       loading = true;
+      NProgress.start();
       if (typeof galite !== "undefined") {
         galite("send", "event", "check", "compile", event.target.suite.value);
       }

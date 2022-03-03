@@ -192,12 +192,13 @@
       const perc = ((correct / total) * 100).toFixed(2);
       resultStatsNode.textContent = `Passed ${correct}/${total} tests (${perc}%)`;
     }
-    async function runCases(CaseNames, isRunAll = false) {
+    async function runCases(CaseNames, isRunAll = false) {  
+      if (loading) return;
+
       if (typeof galite !== "undefined") {
         galite("send", "event", "check", "run", `${isRunAll ? "all" : "single"}`);
       }
-  
-      if (loading) return;
+
       loading = true;
       NProgress.start();
   
