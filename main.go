@@ -38,7 +38,7 @@ func main() {
 	}
 
 	router.ServeFiles("/cases/*filepath", http.Dir(conf.SuitesDir))
-	router.ServeFiles("/case-archives/*filepath", http.Dir(conf.SuitesDir))
+	router.ServeFiles("/case-archives/*filepath", http.Dir(conf.ArchiveDir))
 
 	fmt.Printf("Starting server at port 8080\n")
 	if err := http.ListenAndServe(":8080", gziphandler.GzipHandler(router)); err != nil {
