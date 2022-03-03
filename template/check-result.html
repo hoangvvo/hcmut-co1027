@@ -104,7 +104,8 @@
       <label for="show-option-incorrect">Hiện những case sai</label>
     </div>
     <blockquote id="result-stat">
-      Nhấn <b>Run All</b> để chạy tất cả các test hoặc <b>Run</b> để chạy từng test
+      Nhấn <b>Run All</b> để chạy tất cả các test hoặc <b>Run</b> để chạy từng
+      test
     </blockquote>
     <p>
       <a
@@ -152,7 +153,7 @@
       "input[name='show-option']"
     );
     showOptionInputs.forEach((optInput) => {
-      optInput.addEventListener("change", (e) => {
+      optInput.onchange = (e) => {
         if (e.returnValue) {
           tableNode.classList.remove("show-correct");
           tableNode.classList.remove("show-incorrect");
@@ -162,7 +163,7 @@
             tableNode.classList.add("show-incorrect");
           }
         }
-      });
+      };
     });
   
     // load initial results
@@ -195,18 +196,23 @@
       if (typeof galite !== "undefined") {
         galite("send", "event", "check", "run", `${isRunAll ? "all" : "single"}`);
       }
-
+  
       if (loading) return;
       loading = true;
       NProgress.start();
-
+  
       const requestBody = {
-        CaseNames, All: isRunAll
-      }
-
+        CaseNames,
+        All: isRunAll,
+      };
+  
       const cacheKey = `${runDir}${isRunAll ? "" : CaseNames.join(" ")}`;
   
-      const data = await fetch(`/check/run?runDir=${encodeURIComponent(runDir)}&${isRunAll ? "all=1" : `cases=${encodeURIComponent(CaseNames.join(","))}`}`).then((res) => res.json());
+      const data = await fetch(
+        `/check/run?runDir=${encodeURIComponent(runDir)}&${
+          isRunAll ? "all=1" : `cases=${encodeURIComponent(CaseNames.join(","))}`
+        }`
+      ).then((res) => res.json());
   
       loading = false;
       NProgress.done();
@@ -287,35 +293,35 @@
       Swal.fire({
         title: `Result for test case "${caseName}"`,
         html: `<div>
-          <div>
-            <input type="checkbox" id="show-diff" />
-            <label for="show-diff">Show differences</label>
-          </div>
-          <div class="outputs">
-            <div class="output output-expected">${
-              localResult.ResultExpected
-            }</div>
-            <div class="output output-got">${localResult.ResultGot}</div>
-            <div class="output output-got-diff">${outputGotDiffHtml}</div>
-          </div>
-          ${
-            localResult.Error
-              ? `<p style="color: var(--danger);"">${localResult.Error}</p>`
-              : `<p style="color: var(--success);">Correct!</p>`
-          }
-        </div>`,
+            <div>
+              <input type="checkbox" id="show-diff" />
+              <label for="show-diff">Show differences</label>
+            </div>
+            <div class="outputs">
+              <div class="output output-expected">${
+                localResult.ResultExpected
+              }</div>
+              <div class="output output-got">${localResult.ResultGot}</div>
+              <div class="output output-got-diff">${outputGotDiffHtml}</div>
+            </div>
+            ${
+              localResult.Error
+                ? `<p style="color: var(--danger);"">${localResult.Error}</p>`
+                : `<p style="color: var(--success);">Correct!</p>`
+            }
+          </div>`,
         footer: `<a href="/cases/${suiteName}/${caseName}" target="_blank">View test case</a>`,
         grow: "fullscreen",
-        didOpen() {
-          const showDiffCb = document.querySelector("#show-diff");
-          const outputsNode = document.querySelector(".outputs");
-          showDiffCb.addEventListener("change", (event) => {
+        didOpen(swalDom) {
+          const showDiffCb = swalDom.querySelector("#show-diff");
+          const outputsNode = swalDom.querySelector(".outputs");
+          showDiffCb.onchange = (event) => {
             if (event.currentTarget.checked) {
               outputsNode.classList.add("diff-visible");
             } else {
               outputsNode.classList.remove("diff-visible");
             }
-          });
+          };
         },
       });
     }
