@@ -5,7 +5,9 @@ import (
 	"errors"
 	"html/template"
 	"net/http"
+	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gorilla/securecookie"
@@ -32,6 +34,7 @@ type CheckResult struct {
 
 type DataCheckResult struct {
 	TestSuite runner.TestSuite
+	RunDir    string
 }
 
 var hashKey = []byte("p_ps}}#C*uZUh,v`Ntk*8LE(LNvD4:Gx") // FIXME: to env
@@ -94,10 +97,6 @@ func setSess(w http.ResponseWriter, compileRes *runner.CompileResult) error {
 	return nil
 }
 
-type CheckTestBody struct {
-	CaseNames []string
-}
-
 func CheckTestPostHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	compileRes := readSess(w, r)
 	if compileRes == nil {
@@ -105,27 +104,43 @@ func CheckTestPostHandler(w http.ResponseWriter, r *http.Request, _ httprouter.P
 		return
 	}
 
-	var b CheckTestBody
-	err := json.NewDecoder(r.Body).Decode(&b)
-	if err != nil {
-		sendResponseErr(w, http.StatusBadRequest, err)
+	urlQuery := r.URL.Query()
+	if urlQuery.Get("runDir") != compileRes.RunDir {
+		sendResponseErr(w, http.StatusBadRequest, errors.New("mismatched runDir"))
 		return
+	}
+
+	suiteDir := filepath.Join(conf.SuitesDir, compileRes.SuiteName)
+
+	var CaseDirs []string
+	if urlQuery.Has("all") {
+		dirEntries, err := os.ReadDir(suiteDir)
+		if err != nil {
+			sendResponseErr(w, http.StatusInternalServerError, err)
+			return
+		}
+		for _, entry := range dirEntries {
+			if entry.IsDir() {
+				CaseDirs = append(CaseDirs, filepath.Join(suiteDir, entry.Name()))
+			}
+		}
+	} else {
+		caseNames := strings.Split(urlQuery.Get("cases"), ",")
+		for _, caseName := range caseNames {
+			CaseDirs = append(CaseDirs, filepath.Join(suiteDir, caseName))
+		}
 	}
 
 	executionTimeStart := time.Now()
 
-	var CaseDirs []string
-	for _, caseName := range b.CaseNames {
-		CaseDirs = append(CaseDirs, filepath.Join(conf.CasesDir, compileRes.SuiteName, caseName))
-	}
-
 	results, err := runner.Run(compileRes.RunDir, CaseDirs)
+
+	executionTimeEnd := time.Now()
+
 	if err != nil {
 		sendResponseErr(w, http.StatusInternalServerError, err)
 		return
 	}
-
-	executionTimeEnd := time.Now()
 
 	correctCount := 0
 	for _, result := range results {
@@ -139,6 +154,8 @@ func CheckTestPostHandler(w http.ResponseWriter, r *http.Request, _ httprouter.P
 	total := len(results)
 
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "max-age=31536000")
+
 	err = json.NewEncoder(w).Encode(CheckResult{
 		Total:         total,
 		Correct:       correctCount,
@@ -246,6 +263,7 @@ func CheckResultHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 
 	if err := tempCheckResult.Execute(w, DataCheckResult{
 		TestSuite: *ts,
+		RunDir:    sess.RunDir,
 	}); err != nil {
 		sendResponseErr(w, http.StatusInternalServerError, err)
 	}

@@ -20,7 +20,7 @@ type TestSuite struct {
 }
 
 func GetSuite(suiteName string) (*TestSuite, error) {
-	suiteDir := filepath.Join(conf.CasesDir, suiteName)
+	suiteDir := filepath.Join(conf.SuitesDir, suiteName)
 	entries, err := os.ReadDir(suiteDir)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func GetSuite(suiteName string) (*TestSuite, error) {
 }
 
 func GetSuites() ([]TestSuite, error) {
-	entries, err := os.ReadDir(conf.CasesDir)
+	entries, err := os.ReadDir(conf.SuitesDir)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func GetSuites() ([]TestSuite, error) {
 	for _, entry := range entries {
 		dirName := entry.Name()
 
-		dirsForCnt, _ := os.ReadDir(filepath.Join(conf.CasesDir, dirName))
+		dirsForCnt, _ := os.ReadDir(filepath.Join(conf.SuitesDir, dirName))
 		total := len(dirsForCnt) - 1
 
 		results = append(results, TestSuite{
@@ -64,7 +64,7 @@ func DeleteSuite(suiteName string) error {
 		return errors.New("không được xóa cái này :)")
 	}
 
-	suiteDir := filepath.Join(conf.CasesDir, suiteName)
+	suiteDir := filepath.Join(conf.SuitesDir, suiteName)
 
 	stat, err := os.Stat(suiteDir)
 	if err != nil {
@@ -94,7 +94,7 @@ func AddSuite(fileName string, file multipart.File) error {
 	l := log.New(os.Stdout, "addSuite/fileName: ", log.Lshortfile)
 
 	suiteName := fileNameWithoutExtSliceNotation(filepath.Base(fileName))
-	suiteDir := filepath.Join(conf.CasesDir, suiteName)
+	suiteDir := filepath.Join(conf.SuitesDir, suiteName)
 
 	if _, err := os.Stat(suiteDir); !errors.Is(err, os.ErrNotExist) {
 		l.Println("existed")

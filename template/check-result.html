@@ -141,6 +141,7 @@
   <script src="https://cdn.jsdelivr.net/npm/diff@5.0.0/dist/diff.min.js"></script>
   <script>
     const suiteName = "{{$name}}";
+    const runDir = "{{ .RunDir }}";
     const results = new Map();
   
     const tableNode = document.querySelector("#table");
@@ -190,16 +191,18 @@
       const perc = ((correct / total) * 100).toFixed(2);
       resultStatsNode.textContent = `Passed ${correct}/${total} tests (${perc}%)`;
     }
-    async function runCases(CaseNames) {
+    async function runCases(CaseNames, isRunAll = false) {
       if (loading) return;
       loading = true;
       NProgress.start();
+
+      const requestBody = {
+        CaseNames, All: isRunAll
+      }
+
+      const cacheKey = `${runDir}${isRunAll ? "" : CaseNames.join(" ")}`;
   
-      const data = await fetch("/check/run", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ CaseNames }),
-      }).then((res) => res.json());
+      const data = await fetch(`/check/run?runDir=${encodeURIComponent(runDir)}&${isRunAll ? "all=1" : `cases=${encodeURIComponent(CaseNames.join(","))}`}`).then((res) => res.json());
   
       loading = false;
       NProgress.done();
@@ -243,7 +246,7 @@
     }
   
     async function runAllCases() {
-      const data = await runCases(Array.from(results.keys()));
+      const data = await runCases([], true);
       if (!data.Error) {
         document.querySelector("#run-all-btn").remove();
       }

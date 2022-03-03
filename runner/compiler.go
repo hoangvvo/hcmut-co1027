@@ -97,7 +97,7 @@ type CompileResult struct {
 
 func Compile(answer string, suiteName string) (*CompileResult, error) {
 	suiteName = fileNameWithoutExtSliceNotation(filepath.Base(suiteName)) // prevent malicious paths
-	suiteDir := filepath.Join(conf.CasesDir, suiteName)
+	suiteDir := filepath.Join(conf.SuitesDir, suiteName)
 
 	stat, err := os.Stat(suiteDir)
 	if err != nil {

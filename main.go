@@ -25,20 +25,20 @@ func main() {
 	router.GET("/check/result", app.CheckResultHandler)
 	router.POST("/check", app.CheckCompileHandler)
 	router.DELETE("/check/result", app.CheckDeleteHandler)
-	router.POST("/check/run", app.CheckTestPostHandler)
+	router.GET("/check/run", app.CheckTestPostHandler)
 	router.GET("/upload", app.Upload)
 	router.POST("/upload", app.DoUpload)
 	router.DELETE("/upload/:name", app.DeleteUpload)
 
-	if err := os.MkdirAll(conf.CasesDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(conf.SuitesDir, os.ModePerm); err != nil {
 		panic(err)
 	}
 	if err := os.MkdirAll(conf.ArchiveDir, os.ModePerm); err != nil {
 		panic(err)
 	}
 
-	router.ServeFiles("/cases/*filepath", http.Dir(conf.CasesDir))
-	router.ServeFiles("/case-archives/*filepath", http.Dir(conf.CasesDir))
+	router.ServeFiles("/cases/*filepath", http.Dir(conf.SuitesDir))
+	router.ServeFiles("/case-archives/*filepath", http.Dir(conf.SuitesDir))
 
 	fmt.Printf("Starting server at port 8080\n")
 	if err := http.ListenAndServe(":8080", gziphandler.GzipHandler(router)); err != nil {
