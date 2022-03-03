@@ -1,85 +1,251 @@
 package app
 
 import (
-	"fmt"
+	"encoding/json"
+	"errors"
 	"html/template"
 	"net/http"
+	"path/filepath"
 	"time"
 
-	"github.com/hoangvvo/hcmut-co1027/testcase"
+	"github.com/gorilla/securecookie"
+	"github.com/hoangvvo/hcmut-co1027/conf"
+	"github.com/hoangvvo/hcmut-co1027/runner"
 	"github.com/julienschmidt/httprouter"
 )
 
 var tempCheck = template.Must(template.ParseFiles("template/check.html", "template/base.html"))
+var tempCheckResult = template.Must(template.ParseFiles("template/check-result.html", "template/base.html"))
 
 type DataCheck struct {
-	Suites     []testcase.TestSuite
+	Suites     []runner.TestSuite
 	Error      error
-	Results    []testcase.Result
-	ResultStat *ResultStat
-	PrevAnswer *string
+	PrevAnswer string
 }
 
-type ResultStat struct {
+type CheckResult struct {
 	Total         int
 	Correct       int
-	Percentage    string
 	ExecutionTime int64
-	TestSuite     string
+	Results       []runner.Result
 }
 
-func DoCheck(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	testSuites, err := testcase.GetSuites()
+type DataCheckResult struct {
+	TestSuite runner.TestSuite
+}
+
+var hashKey = []byte("p_ps}}#C*uZUh,v`Ntk*8LE(LNvD4:Gx") // FIXME: to env
+var blockKey = []byte("blockKeyblockKey")
+var s = securecookie.New(hashKey, blockKey)
+
+const cookieName = "sid-v0"
+const SESSION_PROP = "compile"
+
+func readSess(w http.ResponseWriter, r *http.Request) *runner.CompileResult {
+	cookie, err := r.Cookie(cookieName)
+	if err != nil || cookie == nil {
+		return nil
+	}
+
+	value := make(map[string]string)
+
+	if err = s.Decode(cookieName, cookie.Value, &value); err != nil {
+		setSess(w, nil) // invalid session, should just remove
+		return nil
+	}
+
+	if value["runDir"] == "" {
+		return nil
+	}
+
+	return &runner.CompileResult{
+		RunDir:    value["runDir"],
+		SuiteName: value["suiteName"],
+	}
+}
+
+func setSess(w http.ResponseWriter, compileRes *runner.CompileResult) error {
+	if compileRes == nil {
+		cookie := &http.Cookie{
+			Name:     cookieName,
+			Value:    "",
+			Path:     "/",
+			HttpOnly: true,
+			MaxAge:   -1,
+		}
+		http.SetCookie(w, cookie)
+		return nil
+	}
+	value := map[string]string{
+		"runDir":    compileRes.RunDir,
+		"suiteName": compileRes.SuiteName,
+	}
+	encoded, err := s.Encode(cookieName, value)
+	if err != nil {
+		return err
+	}
+	cookie := &http.Cookie{
+		Name:     cookieName,
+		Value:    encoded,
+		Path:     "/",
+		HttpOnly: true,
+	}
+	http.SetCookie(w, cookie)
+	return nil
+}
+
+type CheckTestBody struct {
+	CaseNames []string
+}
+
+func CheckTestPostHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	compileRes := readSess(w, r)
+	if compileRes == nil {
+		sendResponseErr(w, http.StatusBadRequest, errors.New("no session"))
+		return
+	}
+
+	var b CheckTestBody
+	err := json.NewDecoder(r.Body).Decode(&b)
+	if err != nil {
+		sendResponseErr(w, http.StatusBadRequest, err)
+		return
+	}
+
+	executionTimeStart := time.Now()
+
+	var CaseDirs []string
+	for _, caseName := range b.CaseNames {
+		CaseDirs = append(CaseDirs, filepath.Join(conf.CasesDir, compileRes.SuiteName, caseName))
+	}
+
+	results, err := runner.Run(compileRes.RunDir, CaseDirs)
 	if err != nil {
 		sendResponseErr(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	executionTimeEnd := time.Now()
+
+	correctCount := 0
+	for _, result := range results {
+		if len(result.Error) > 0 {
+			if len(result.ResultGot) == 0 {
+				result.ResultGot = result.Error
+			}
+			correctCount += 1
+		}
+	}
+	total := len(results)
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(CheckResult{
+		Total:         total,
+		Correct:       correctCount,
+		ExecutionTime: executionTimeEnd.UnixMilli() - executionTimeStart.UnixMilli(),
+		Results:       results,
+	})
+
+	if err != nil {
+		sendResponseErr(w, http.StatusInternalServerError, err)
+	}
+}
+
+func CheckDeleteHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	compileRes := readSess(w, r)
+	if compileRes != nil {
+		err := runner.DeleteCompiled(compileRes.RunDir)
+		if err != nil {
+			sendResponseErr(w, http.StatusInternalServerError, err)
+			return
+		}
+		err = setSess(w, nil)
+		if err != nil {
+			sendResponseErr(w, http.StatusInternalServerError, err)
+			return
+		}
+	}
+	sendResponseSuccess(w)
+}
+
+func CheckCompileHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	sess := readSess(w, r)
+	if sess != nil {
+		// remove previous sess
+		runner.DeleteCompiled(sess.RunDir)
+		setSess(w, nil)
 	}
 
 	answer := r.FormValue("answer")
 	suiteName := r.FormValue("suite")
 
-	executionTimeStart := time.Now()
-
-	results, err := testcase.RunSuite(suiteName, answer)
-
-	executionTimeEnd := time.Now()
-
-	var incorrectResults []testcase.Result
-	for _, result := range results {
-		if len(result.Error) > 0 {
-			if len(result.MyOutput) == 0 {
-				result.MyOutput = result.Error
-			}
-			incorrectResults = append(incorrectResults, result)
-		}
+	if answer == "" || suiteName == "" {
+		sendResponseErr(w, http.StatusBadRequest, errors.New("invalid input"))
+		return
 	}
-	total := len(results)
-	correctCount := len(results) - len(incorrectResults)
-	percentage := fmt.Sprintf("%.2f", float32(correctCount)/float32(total)*100)
 
-	if err := tempCheck.Execute(w, DataCheck{
-		Suites:  testSuites,
-		Error:   err,
-		Results: incorrectResults,
-		ResultStat: &ResultStat{
-			Total:         total,
-			Correct:       correctCount,
-			Percentage:    percentage,
-			ExecutionTime: executionTimeEnd.UnixMilli() - executionTimeStart.UnixMilli(),
-			TestSuite:     suiteName,
-		},
-		PrevAnswer: &answer,
-	}); err != nil {
-		sendResponseErr(w, http.StatusInternalServerError, err)
-	}
-}
-
-func Check(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	testSuites, err := testcase.GetSuites()
+	testSuites, err := runner.GetSuites()
 	if err != nil {
 		sendResponseErr(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	compiledRes, err := runner.Compile(answer, suiteName)
+
+	// error happen, just render normally
+	if err != nil {
+		if err := tempCheck.Execute(w, DataCheck{
+			Suites: testSuites,
+			Error:  err,
+		}); err != nil {
+			sendResponseErr(w, http.StatusInternalServerError, err)
+			return
+		}
+		return
+	}
+
+	// set session
+	if err = setSess(w, compiledRes); err != nil {
+		sendResponseErr(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	// redirect to render with result page
+	http.Redirect(w, r, conf.AppURI+"/check/result", http.StatusSeeOther)
+}
+
+func CheckHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	testSuites, err := runner.GetSuites()
+	if err != nil {
+		sendResponseErr(w, http.StatusInternalServerError, err)
+		return
 	}
 	if err := tempCheck.Execute(w, DataCheck{
 		Suites: testSuites,
+	}); err != nil {
+		sendResponseErr(w, http.StatusInternalServerError, err)
+		return
+	}
+}
+
+func CheckResultHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	sess := readSess(w, r)
+
+	if sess == nil {
+		http.Redirect(w, r, conf.AppURI+"/check", http.StatusSeeOther)
+		return
+	}
+
+	ts, err := runner.GetSuite(sess.SuiteName)
+	if err != nil || ts == nil {
+		// error getting suite redirect while deleting this cookie
+		setSess(w, nil)
+		http.Redirect(w, r, conf.AppURI+"/check", http.StatusSeeOther)
+		return
+	}
+
+	if err := tempCheckResult.Execute(w, DataCheckResult{
+		TestSuite: *ts,
 	}); err != nil {
 		sendResponseErr(w, http.StatusInternalServerError, err)
 	}

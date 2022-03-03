@@ -1,4 +1,4 @@
-package testcase
+package runner
 
 import "errors"
 

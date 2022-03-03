@@ -10,57 +10,16 @@
   </p>
 </form>
 <h3>Hướng dẫn tạo bộ test</h3>
-<a href="/tests/case-1.zip" download="case-1.zip">Tải bộ test mẫu</a>
-
 <p>
   Một bộ test bao gồm nhiều test case. Mỗi test case sẽ được chứa trong một thư
-  mục. Mỗi thư mục test case cần có một file có tên <code>result.txt</code>, là
-  kết quả màn hình (stdout) sau khi chạy <code>main.cpp</code>.
+  mục. Ở thư mục mẹ (ngoài cùng), cần phải chưa một file <code>main.cpp</code>
 </p>
-
-<h4>Cách 1: Sử dụng <code>main.cpp</code> của app</h4>
 <p>
-  Mình có chuẩn bị một file <code>main.cpp</code> có thể ghi kết quả output và
-  copy các file input vào một thư mục. Các thư mục này có thể được zip lại và
-  upload làm bộ test.
+  Mỗi thư mục test case cần có một file có tên <code>output.txt</code>, là kết
+  quả màn hình (stdout) sau khi chạy <code>main.cpp</code> đó.
 </p>
-<ul>
-  <li>
-    Thay thế nội dung <code>main.cpp</code> bằng code trong file
-    <a
-      target="_blank"
-      href="https://gist.github.com/hoangvvo/2407c50e2969d205bac9599d46c1c4a5#file-main-write-cpp"
-      ><code>main-write.cpp</code></a
-    >.
-  </li>
-  <li>Chỉnh lại các file input</li>
-  <li>
-    Chạy chương trình, nhập số tt test N. Sau khi chạy, code sẽ tạo một folder
-    có tên <code>test"N"</code>
-  </li>
-  <li>
-    Lặp lại các bước trên. Sau đó nén các thư mục <code>test"N"</code> vào một
-    file zip. Upload file đó!
-  </li>
-</ul>
-<p>
-  Ngoài ra các bạn có thể xem qua file
-  <a
-    target="_blank"
-    href="https://gist.github.com/hoangvvo/2407c50e2969d205bac9599d46c1c4a5#file-main-cpp"
-    ><code>main.cpp</code></a
-  >
-  web app sử dụng để chấm bài. (file này có output như file trên nhưng in ra màn
-  hình thay vì viết vào file)
-</p>
-<h4>Cách 2: Sử dụng file main.cpp riêng</h4>
-App chấm bài hoạt động theo quy tắc so sánh output ra màn hình (stdout) sau khi
-chạy file <code>main.cpp</code>. Trong file zip, bạn có thể bỏ kèm một file
-<code>main.cpp</code> (phải nằm ngoài cùng). Chương trình sẽ chạy file đó và ghi
-lại kết quả màn hình, sau đó so sánh với file <code>result.txt</code> trong từng
-folder test case.
-
-<h2>bộ test đã được upload</h2>
+<p><a href="/cases/case-1">Xem thư mục test mẫu</a></p>
+<h2>Các bộ test đã được upload</h2>
 <blockquote>
   Vui lòng chỉ xóa nếu bộ test là của bạn hoặc đã được người upload cho phép!
 </blockquote>
@@ -68,7 +27,7 @@ folder test case.
   <thead>
     <tr>
       <th>Name</th>
-      <th>Uploaded on</th>
+      <th>Test cases</th>
       <th>Action</th>
     </tr>
   </thead>
@@ -76,7 +35,7 @@ folder test case.
     {{ range .Suites }}
     <tr id="suite-{{ .Name }}">
       <td>{{ .Name }}</td>
-      <td>{{ .CreatedAt.Format "2006-01-02T15:04:05Z07:00" }}</td>
+      <td>{{ .Total }}</td>
       <td>
         <button onclick="downloadSuite('{{ .Name }}')">Download</button
         ><button onclick="deleteSuite('{{ .Name }}')">Delete</button>
@@ -91,7 +50,7 @@ folder test case.
       galite("send", "event", "upload", "download", suiteName);
     }
     const el = document.createElement("a");
-    el.setAttribute("href", `/tests/${suiteName}`);
+    el.setAttribute("href", `/case-archives/${suiteName}.zip`);
     el.setAttribute("download", suiteName);
     el.style.display = "none";
     document.body.appendChild(el);

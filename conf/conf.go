@@ -6,4 +6,6 @@ import (
 )
 
 var cwd, _ = os.Getwd()
-var CASEDIR = path.Join(cwd, "cases")
+var CasesDir = path.Join(cwd, "cases")
+var ArchiveDir = path.Join(cwd, "archive")
+var AppURI = os.Getenv("APP_URI")

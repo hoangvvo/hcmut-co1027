@@ -1,0 +1,322 @@
+{{template "base" .}} {{define "title"}}Check{{end}} {{define "main"}} {{$name
+  := .TestSuite.Name}}
+  <style>
+    .run-btn,
+    .view-btn {
+      padding: 2px 10px;
+      border: 2px solid var(--links);
+      border-radius: 8px;
+      display: inline-block;
+      margin-right: 12px;
+      width: 48px;
+      text-align: center;
+    }
+    .run-btn {
+      background: var(--links);
+      color: white;
+    }
+    .view-btn {
+      color: var(--links);
+    }
+    #table.show-correct .case,
+    #table.show-incorrect .case {
+      display: none;
+    }
+    #table.show-correct .case.correct {
+      display: table-row;
+    }
+    #table.show-incorrect .case.incorrect {
+      display: table-row;
+    }
+    .case .table-result:after {
+      content: "Chưa chạy";
+    }
+    .case.pending .view-btn {
+      display: none;
+    }
+    .case.correct .view-btn,
+    .case.incorrect .view-btn {
+      display: inline-block;
+    }
+    .case.correct .run-btn,
+    .case.incorrect .run-btn {
+      display: none;
+    }
+    .case.correct .table-result:after {
+      content: "Chính xác";
+      color: var(--success);
+    }
+    .case.incorrect .table-result:after {
+      content: "Không chính xác";
+      color: var(--danger);
+    }
+    .outputs {
+      display: flex;
+      text-align: left;
+    }
+    .outputs .output {
+      white-space: pre;
+      overflow: auto;
+      padding: 8px;
+      flex: 1 1 0;
+    }
+    .outputs .output-expected {
+      background-color: var(--background);
+    }
+    .outputs .output-got-diff {
+      display: none;
+    }
+    .outputs.diff-visible .output-got-diff {
+      display: block;
+    }
+    .outputs.diff-visible .output-got {
+      display: none;
+    }
+  </style>
+  <h2>Kết quả chấm bài</h2>
+  <p>Test case: <a target="_blank" href="/cases/{{ $name }}">{{ $name }}</a></p>
+  <div>
+    <h3>Đóng bài làm</h3>
+    <p>
+      Xóa chương trình bài làm khỏi máy chủ và trở về trang nộp bài. Hãy làm việc
+      này sau khi bạn test xong code hiện tại để giúp giảm thiểu tài nguyên máy
+      chủ. Cảm ơn!
+    </p>
+    <button onclick="closeTest()">Đóng</button>
+  </div>
+  <div id="cases">
+    <h3>Tất cả các case</h3>
+    <div>
+      <input
+        id="show-option-all"
+        type="radio"
+        name="show-option"
+        value="all"
+        checked=""
+      />
+      <label for="show-option-all">Show all cases</label>
+      <input
+        id="show-option-correct"
+        type="radio"
+        name="show-option"
+        value="correct"
+      />
+      <label for="show-option-correct">Show correct cases</label>
+      <input
+        id="show-option-incorrect"
+        type="radio"
+        name="show-option"
+        value="incorrect"
+      />
+      <label for="show-option-incorrect">Show incorrect cases</label>
+    </div>
+    <blockquote id="result-stat">
+      Press <b>Run All</b> to run all tests at once or <b>Run</b> to run a single
+      test
+    </blockquote>
+    <p>
+      <a
+        id="run-all-btn"
+        style="width: auto"
+        href="javascript:runAllCases()"
+        class="run-btn"
+        >Run All</a
+      >
+    </p>
+    <table id="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Result</th>
+          <th style="width: 124px">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ range .TestSuite.TestCases }}
+        <tr class="case pending" id="testcase-{{ . }}">
+          <td>{{ . }}</td>
+          <td class="table-result"></td>
+          <td>
+            <a href="javascript:runCases(['{{ . }}'])" class="run-btn">Run</a>
+            <a href="javascript:viewCase('{{ . }}')" class="view-btn">Result</a>
+            <a target="_blank" href="/cases/{{ $name }}/{{ . }}">View</a>
+          </td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/diff@5.0.0/dist/diff.min.js"></script>
+  <script>
+    const suiteName = "{{$name}}";
+    const results = new Map();
+  
+    const tableNode = document.querySelector("#table");
+    const resultStatsNode = document.querySelector("#result-stat");
+  
+    // filter
+    const showOptionInputs = document.querySelectorAll(
+      "input[name='show-option']"
+    );
+    showOptionInputs.forEach((optInput) => {
+      optInput.addEventListener("change", (e) => {
+        if (e.returnValue) {
+          tableNode.classList.remove("show-correct");
+          tableNode.classList.remove("show-incorrect");
+          if (e.target.value === "correct") {
+            tableNode.classList.add("show-correct");
+          } else if (e.target.value === "incorrect") {
+            tableNode.classList.add("show-incorrect");
+          }
+        }
+      });
+    });
+  
+    // load initial results
+    for (const [index, row] of Object.entries(tableNode.rows)) {
+      if (index > 0) {
+        results.set(row.cells[0].textContent, {
+          index: index - 1,
+          Name: row.cells[0].textContent,
+        });
+      }
+    }
+  
+    function getRowByIndex(index) {
+      return tableNode.rows[index + 1];
+    }
+  
+    let loading = false;
+  
+    function updateResultText() {
+      const total = results.size;
+      if (total <= 0) return;
+      const correct = Array.from(results.values()).reduce((prev, curr) => {
+        if (curr.Error === "") return prev + 1;
+        return prev;
+      }, 0);
+      const perc = ((correct / total) * 100).toFixed(2);
+      resultStatsNode.textContent = `Passed ${correct}/${total} tests (${perc}%)`;
+    }
+    async function runCases(CaseNames) {
+      if (loading) return;
+      loading = true;
+      NProgress.start();
+  
+      const data = await fetch("/check/run", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ CaseNames }),
+      }).then((res) => res.json());
+  
+      loading = false;
+      NProgress.done();
+  
+      if (data.error) {
+        Swal.fire({
+          icon: "error",
+          title: "Thôi toang!",
+          text: data.error,
+        });
+        return data;
+      }
+  
+      Swal.fire({
+        toast: true,
+        icon: "success",
+        title: `Execution completed in ${data.ExecutionTime}ms`,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 7000,
+      });
+  
+      // save results
+      data.Results.forEach((result) => {
+        const localResult = results.get(result.Name);
+        const row = getRowByIndex(localResult.index);
+        row.classList.remove("pending");
+        if (result.Error) {
+          row.classList.add("incorrect");
+        } else {
+          row.classList.add("correct");
+        }
+        results.set(result.Name, {
+          ...localResult,
+          ...result,
+        });
+      });
+      updateResultText();
+  
+      return data;
+    }
+  
+    async function runAllCases() {
+      const data = await runCases(Array.from(results.keys()));
+      if (!data.Error) {
+        document.querySelector("#run-all-btn").remove();
+      }
+    }
+  
+    async function closeTest() {
+      await fetch("/check/result", { method: "DELETE" });
+      window.location.href = "/check";
+    }
+  
+    function viewCase(caseName) {
+      const localResult = results.get(caseName);
+      const diff = Diff.diffWordsWithSpace(
+        localResult.ResultExpected,
+        localResult.ResultGot
+      );
+      let outputGotDiffHtml = "";
+      diff.forEach((part) => {
+        // green for additions, red for deletions
+        // grey for common parts
+        const color = part.added
+          ? "#8bc34a"
+          : part.removed
+          ? "#f44336"
+          : "transparent";
+        span = document.createElement("span");
+        span.style.background = color;
+        span.appendChild(document.createTextNode(part.value));
+        outputGotDiffHtml += span.outerHTML;
+      });
+      Swal.fire({
+        title: `Result for test case "${caseName}"`,
+        html: `<div>
+          <div>
+            <input type="checkbox" id="show-diff" />
+            <label for="show-diff">Show differences</label>
+          </div>
+          <div class="outputs">
+            <div class="output output-expected">${
+              localResult.ResultExpected
+            }</div>
+            <div class="output output-got">${localResult.ResultGot}</div>
+            <div class="output output-got-diff">${outputGotDiffHtml}</div>
+          </div>
+          ${
+            localResult.Error
+              ? `<p style="color: var(--danger);"">${localResult.Error}</p>`
+              : `<p style="color: var(--success);">Correct!</p>`
+          }
+        </div>`,
+        footer: `<a href="/cases/${suiteName}/${caseName}" target="_blank">View test case</a>`,
+        grow: "fullscreen",
+        didOpen() {
+          const showDiffCb = document.querySelector("#show-diff");
+          const outputsNode = document.querySelector(".outputs");
+          showDiffCb.addEventListener("change", (event) => {
+            if (event.currentTarget.checked) {
+              outputsNode.classList.add("diff-visible");
+            } else {
+              outputsNode.classList.remove("diff-visible");
+            }
+          });
+        },
+      });
+    }
+  </script>
+  {{end}}
+  

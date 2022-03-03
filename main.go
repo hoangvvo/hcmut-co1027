@@ -20,18 +20,24 @@ type ContactDetails struct {
 func main() {
 	router := httprouter.New()
 	router.GET("/", app.Index)
-	router.GET("/check", app.Check)
-	router.POST("/check", app.DoCheck)
+	router.GET("/check", app.CheckHandler)
+	router.GET("/check/result", app.CheckResultHandler)
+	router.POST("/check", app.CheckCompileHandler)
+	router.DELETE("/check/result", app.CheckDeleteHandler)
+	router.POST("/check/run", app.CheckTestPostHandler)
 	router.GET("/upload", app.Upload)
 	router.POST("/upload", app.DoUpload)
 	router.DELETE("/upload/:name", app.DeleteUpload)
 
-	err := os.MkdirAll(conf.CASEDIR, os.ModePerm)
-	if err != nil {
+	if err := os.MkdirAll(conf.CasesDir, os.ModePerm); err != nil {
+		panic(err)
+	}
+	if err := os.MkdirAll(conf.ArchiveDir, os.ModePerm); err != nil {
 		panic(err)
 	}
 
-	router.ServeFiles("/tests/*filepath", http.Dir(conf.CASEDIR))
+	router.ServeFiles("/cases/*filepath", http.Dir(conf.CasesDir))
+	router.ServeFiles("/case-archives/*filepath", http.Dir(conf.CasesDir))
 
 	fmt.Printf("Starting server at port 8080\n")
 	if err := http.ListenAndServe(":8080", router); err != nil {

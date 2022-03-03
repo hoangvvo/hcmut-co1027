@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/hoangvvo/hcmut-co1027/testcase"
+	"github.com/hoangvvo/hcmut-co1027/runner"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -16,7 +16,7 @@ func DoUpload(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 	defer file.Close()
-	err = testcase.AddSuite(handler.Filename, file)
+	err = runner.AddSuite(handler.Filename, file)
 	if err != nil {
 		sendResponseErr(w, http.StatusBadRequest, err)
 		return
@@ -26,7 +26,7 @@ func DoUpload(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 func DeleteUpload(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
 	suiteName := params.ByName("name")
-	if err := testcase.DeleteSuite(suiteName); err != nil {
+	if err := runner.DeleteSuite(suiteName); err != nil {
 		sendResponseErr(w, http.StatusBadRequest, err)
 		return
 	}
@@ -36,7 +36,7 @@ func DeleteUpload(w http.ResponseWriter, r *http.Request, params httprouter.Para
 var tempUpload = template.Must(template.ParseFiles("template/upload.html", "template/base.html"))
 
 func Upload(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	testSuites, err := testcase.GetSuites()
+	testSuites, err := runner.GetSuites()
 	if err != nil {
 		sendResponseErr(w, http.StatusInternalServerError, err)
 		return

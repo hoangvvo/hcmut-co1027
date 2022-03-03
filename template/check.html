@@ -7,9 +7,7 @@
       Nhập code của <code>studyInPink2.h</code> để chấm bài. Bài làm sẽ được xóa
       sau khi xử lý xong.
     </p>
-    <textarea id="answer" name="answer" rows="6" required>
-{{ if .PrevAnswer }}{{ .PrevAnswer }}{{ end }}</textarea
-    >
+    <textarea id="answer" name="answer" rows="6" required></textarea>
   </div>
   <div style="margin-top: 24px">
     <label>Bộ test case</label>
@@ -20,51 +18,12 @@
       {{ end }}
     </select>
   </div>
-  <button>Check</button>
+  <button>Compile</button>
 </form>
 {{ if .Error }}
 <div id="error">
   <p>Không thể chạy test!</p>
   <pre>{{ .Error }}</pre>
-</div>
-{{else if .ResultStat}}
-<div id="result">
-  <h2>Result</h2>
-  <blockquote class="result-stat">
-    Passed <b>{{ .ResultStat.Correct }}/{{ .ResultStat.Total }}</b> tests ({{
-    .ResultStat.Percentage }}%). Took {{ .ResultStat.ExecutionTime }}ms.
-  </blockquote>
-  <a
-    href="/tests/{{ .ResultStat.TestSuite }}"
-    download="{{ .ResultStat.TestSuite }}"
-    >Tải bộ test</a
-  >
-  <h4>Test case không chính xác</h4>
-  <div>
-    <input type="checkbox" id="show-diff" />
-    <label for="show-diff">Show differences</label>
-  </div>
-  <table>
-    <thead>
-      <tr>
-        <th style="width: 64px">Name</th>
-        <th>Expected</th>
-        <th>Got</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{ range .Results }}
-      <tr class="result-each">
-        <td>{{ .Name }}</td>
-        <td class="output output-expected">{{ .TestOutput }}</td>
-        <td>
-          <div class="output output-got">{{ .MyOutput }}</div>
-          <div class="output output-got-diff"></div>
-        </td>
-      </tr>
-      {{ end }}
-    </tbody>
-  </table>
 </div>
 {{ end }}
 <style>
@@ -76,26 +35,6 @@
     overflow: auto;
     padding: 10px;
     background-color: var(--background);
-  }
-  #result table,
-  th,
-  td {
-    border: 1px solid;
-  }
-  #result .output {
-    white-space: pre;
-    overflow-x: auto;
-  }
-  #result .result-stat {
-  }
-  #result .output-got-diff {
-    display: none;
-  }
-  #result.diff-visible .output-got-diff {
-    display: block;
-  }
-  #result.diff-visible .output-got {
-    display: none;
   }
 </style>
 <script>
@@ -112,48 +51,4 @@
     }
   };
 </script>
-{{if and (.ResultStat) (not .Error) }}
-<script src="https://cdn.jsdelivr.net/npm/diff@5.0.0/dist/diff.min.js"></script>
-<script>
-  const selectedSuite = "{{ .ResultStat.TestSuite }}";
-  if (typeof galite !== "undefined") {
-    galite("send", "event", "check", "result", selectedSuite);
-  }
-  const selectNode = document.querySelector("#select-suite");
-  selectNode.value = selectedSuite;
-  const showDiffCb = document.querySelector("#show-diff");
-  const resultNode = document.querySelector("#result");
-  showDiffCb.addEventListener("change", (event) => {
-    if (event.currentTarget.checked) {
-      resultNode.classList.add("diff-visible");
-    } else {
-      resultNode.classList.remove("diff-visible");
-    }
-  });
-  const resultList = document.querySelectorAll(".result-each");
-  resultList.forEach((result) => {
-    const outputExpectedNode = result.querySelector(".output-expected");
-    const outputGotNode = result.querySelector(".output-got");
-    const outputGotNodeDiff = result.querySelector(".output-got-diff");
-    const diff = Diff.diffWordsWithSpace(
-      outputExpectedNode.textContent,
-      outputGotNode.textContent
-    );
-    const fragment = document.createDocumentFragment();
-    diff.forEach((part) => {
-      // green for additions, red for deletions
-      // grey for common parts
-      const color = part.added
-        ? "#8bc34a"
-        : part.removed
-        ? "#f44336"
-        : "transparent";
-      span = document.createElement("span");
-      span.style.background = color;
-      span.appendChild(document.createTextNode(part.value));
-      fragment.appendChild(span);
-    });
-    outputGotNodeDiff.appendChild(fragment);
-  });
-</script>
-{{end}} {{end}}
+{{end}}
