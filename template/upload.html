@@ -5,18 +5,22 @@
   <input type="file" accept=".zip" name="fileSuite" required />
   <button>Upload</button>
   <p>
-    Note: Nên đặt tên theo cú pháp "tencuaban-tentestcase.zip" để mọi người biết
-    bộ test của ai
+    Note: Nên đặt tên theo cú pháp "tenbaitap-tencuaban-tentestcase.zip" để mọi
+    người biết bộ test của ai và bài tập bộ test dùng cho (có thể test nhiều bài
+    tập lớn khác nhau theo tên file).
   </p>
 </form>
 <h3>Hướng dẫn tạo bộ test</h3>
+<p>Bộ test sẽ được upload dưới dạng một file ZIP</p>
 <p>
   Một bộ test bao gồm nhiều test case. Mỗi test case sẽ được chứa trong một thư
-  mục con. Ở thư mục mẹ (ngoài cùng), cần phải chứa một file <code>main.cpp</code>
+  mục con. Ở thư mục mẹ (ngoài cùng) cần phải chứa một file
+  <code>main.cpp</code>.
 </p>
 <p>
   Mỗi thư mục test case cần có một file có tên <code>output.txt</code>, là kết
-  quả màn hình (stdout) sau khi chạy file <code>main.cpp</code> đó.
+  quả màn hình (stdout) sau khi chạy file <code>main.cpp</code> đó. Các file
+  input trong từng folder sẽ được copy vào thư mục chạy trong mỗi case.
 </p>
 <p><a href="/case-archives/case-1.zip">Xem file zip test mẫu</a></p>
 <h2>Các bộ test đã được upload</h2>
@@ -57,7 +61,7 @@
   async function deleteSuite(suiteName) {
     const result = await Swal.fire({
       title: "Are you sủe?",
-      text: "bộ test này sẽ bị xóa mãi mãi!",
+      text: "Bộ test này sẽ bị xóa mãi mãi! Vui lòng tránh xóa bộ test của người khác.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
