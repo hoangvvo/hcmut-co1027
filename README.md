@@ -2,6 +2,8 @@
 
 Bộ chấm bài lớp CO1027 - KTLT. Bộ test tự upload bởi người dùng / hỗ trợ chấm các bài tập lớn khác nhau (theo tên file) nên có thể dùng cho nhiều năm sau :)
 
+Website: http://co1027.hoangvvo.com/ (mình sẽ đóng server nếu không có bài tập lớn để tiết kiệm chi phí, liên hệ mình để mở lại nếu cần. Ngoài ra nếu được các bạn có thể [donate](DONATE.md))
+
 ## Workflow
 
 Chương trình nên được deploy bằng [docker](https://www.docker.com/). Nếu chạy trực tiếp trên host có thể dẫn tới vấn đề bảo mật vì chương trình cho phép thực thi code bất kì!
