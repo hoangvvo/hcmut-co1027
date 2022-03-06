@@ -2,7 +2,7 @@ package runner
 
 import (
 	"errors"
-	"io"
+	"log"
 	"mime/multipart"
 	"os"
 	"os/exec"
@@ -75,59 +75,82 @@ func DeleteSuite(suiteName string) error {
 	}
 
 	os.Remove(suiteZip)
-	return os.RemoveAll(suiteDir)
-}
+	err = os.RemoveAll(suiteDir)
 
-func fileNameWithoutExtSliceNotation(fileName string) string {
-	return fileName[:len(fileName)-len(filepath.Ext(fileName))]
-}
-
-func writeFile(filePath string, file multipart.File) error {
-	dst, err := os.Create(filePath)
 	if err != nil {
-		return err
+		log.Println("removed test case " + suiteName)
 	}
-	defer dst.Close()
-	_, err = io.Copy(dst, file)
+
 	return err
 }
 
 func AddSuite(fileName string, file multipart.File) error {
-
 	suiteName := fileNameWithoutExtSliceNotation(filepath.Base(fileName))
 	suiteDir := filepath.Join(conf.SuitesDir, suiteName)
 
-	if _, err := os.Stat(suiteDir); !errors.Is(err, os.ErrNotExist) {
+	existed, err := exists(suiteDir)
+	if err != nil {
+		return err
+	}
+	if existed {
 		return errors.New("test suite with with the name " + suiteName + " has already existed")
 	}
 
 	// add zip file
 	zipPath := filepath.Join(conf.ArchiveDir, fileName)
-	err := writeFile(zipPath, file)
-	if err != nil {
+	if err = writeFile(zipPath, file); err != nil {
+		os.Remove(zipPath)
 		os.RemoveAll(suiteDir)
 		return err
 	}
 
 	// unzip
-	_, err = unzip.New().Extract(zipPath, suiteDir)
-	if err != nil {
+	if _, err = unzip.New().Extract(zipPath, suiteDir); err != nil {
 		// fail, remove all
+		os.Remove(zipPath)
 		os.RemoveAll(suiteDir)
 		return err
+	}
+
+	existed, err = exists(filepath.Join(suiteDir, "main.cpp"))
+	if err != nil {
+		// fail, remove all
+		os.Remove(zipPath)
+		os.RemoveAll(suiteDir)
+		return err
+	}
+	if !existed {
+		// fail, remove all
+		os.Remove(zipPath)
+		os.RemoveAll(suiteDir)
+		return errors.New("main.cpp is missing")
 	}
 
 	// attempt to convert crlf to lf
 	// loop each dirs because arg can be very long for dos2unix
 	dirEntries, err := os.ReadDir(suiteDir)
 	if err != nil {
-	} else {
-		for _, entry := range dirEntries {
-			if entry.IsDir() {
-				exec.Command("bash", "-c", "dos2unix -o "+filepath.Join(suiteDir, entry.Name(), "*.txt")).Run()
-			}
+		// fail, remove all
+		os.Remove(zipPath)
+		os.RemoveAll(suiteDir)
+		return err
+	}
+
+	// including main.cpp file
+	if len(dirEntries) < 2 {
+		// fail, remove all
+		os.Remove(zipPath)
+		os.RemoveAll(suiteDir)
+		return errors.New("require at least 1 test case")
+	}
+
+	for _, entry := range dirEntries {
+		if entry.IsDir() {
+			exec.Command("bash", "-c", "dos2unix -o "+filepath.Join(suiteDir, entry.Name(), "*.txt")).Run()
 		}
 	}
+
+	log.Println("added test case " + suiteName)
 
 	return nil
 }

@@ -25,6 +25,11 @@ type Result struct {
 	Dir            string
 }
 
+type CompileResult struct {
+	RunDir    string
+	SuiteName string
+}
+
 func preformat(output string) string {
 	output = strings.TrimSpace(output)
 	output = strings.Trim(output, "\n")
@@ -98,11 +103,6 @@ func Run(runDir string, caseDirs []string) ([]Result, error) {
 	}
 
 	return results, nil
-}
-
-type CompileResult struct {
-	RunDir    string
-	SuiteName string
 }
 
 func Compile(answer string, answerFileName string, suiteName string) (*CompileResult, error) {
