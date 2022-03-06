@@ -2,12 +2,24 @@
 <h2>Chấm bài</h2>
 <form id="form" method="post" action="/check">
   <div>
-    <label for="answer">Bài làm</label>
-    <p>
-      Nhập code của <code>studyInPink2.h</code> để chấm bài. Bài làm sẽ được xóa
-      sau khi xử lý xong.
-    </p>
-    <textarea id="answer" name="answer" rows="6" required></textarea>
+    <div>
+      <label for="answer-filename">Tên file</label>
+      <p>Ví dụ: nếu là Assignment1, nhập <code>studyInPink2.h</code>.</p>
+      <input
+        autocomplete="on"
+        id="answer-filename"
+        name="answer-filename"
+        required
+      />
+    </div>
+    <div>
+      <label for="answer">Bài làm</label>
+      <p>
+        Nhập code của file có tên ở trên. Bài làm sẽ được xóa sau khi xử lý
+        xong.
+      </p>
+      <textarea id="answer" name="answer" rows="6" required></textarea>
+    </div>
   </div>
   <div style="margin-top: 24px">
     <label>Bộ test case</label>
@@ -46,9 +58,6 @@
     } else {
       loading = true;
       NProgress.start();
-      if (typeof galite !== "undefined") {
-        galite("send", "event", "check", "compile", event.target.suite.value);
-      }
     }
   };
 </script>

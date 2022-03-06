@@ -78,9 +78,8 @@
   <div>
     <h3>Đóng bài làm</h3>
     <p>
-      Xóa chương trình bài làm khỏi máy chủ và trở về trang nộp bài. Hãy làm việc
-      này sau khi bạn test xong code hiện tại để giúp giảm thiểu tài nguyên máy
-      chủ. Cảm ơn!
+      Xóa chương trình bài làm khỏi máy chủ và trở về trang nộp bài. Sử dụng nếu
+      bạn muốn nhập code mới hoặc đổi bộ test.
     </p>
     <button onclick="closeTest()">Đóng</button>
   </div>
@@ -192,13 +191,9 @@
       const perc = ((correct / total) * 100).toFixed(2);
       resultStatsNode.textContent = `Passed ${correct}/${total} tests (${perc}%)`;
     }
-    async function runCases(CaseNames, isRunAll = false) {  
+    async function runCases(CaseNames, isRunAll = false) {
       if (loading) return;
-
-      if (typeof galite !== "undefined") {
-        galite("send", "event", "check", "run", `${isRunAll ? "all" : "single"}`);
-      }
-
+  
       loading = true;
       NProgress.start();
   
@@ -264,9 +259,6 @@
     }
   
     async function closeTest() {
-      if (typeof galite !== "undefined") {
-        galite("send", "event", "check", "close");
-      }
       await fetch("/check/result", { method: "DELETE" });
       window.location.href = "/check";
     }
@@ -294,23 +286,23 @@
       Swal.fire({
         title: `Result for test case "${caseName}"`,
         html: `<div>
-            <div>
-              <input type="checkbox" id="show-diff" />
-              <label for="show-diff">Show differences</label>
-            </div>
-            <div class="outputs">
-              <div class="output output-expected">${
-                localResult.ResultExpected
-              }</div>
-              <div class="output output-got">${localResult.ResultGot}</div>
-              <div class="output output-got-diff">${outputGotDiffHtml}</div>
-            </div>
-            ${
-              localResult.Error
-                ? `<p style="color: var(--danger);"">${localResult.Error}</p>`
-                : `<p style="color: var(--success);">Correct!</p>`
-            }
-          </div>`,
+              <div>
+                <input type="checkbox" id="show-diff" />
+                <label for="show-diff">Show differences</label>
+              </div>
+              <div class="outputs">
+                <div class="output output-expected">${
+                  localResult.ResultExpected
+                }</div>
+                <div class="output output-got">${localResult.ResultGot}</div>
+                <div class="output output-got-diff">${outputGotDiffHtml}</div>
+              </div>
+              ${
+                localResult.Error
+                  ? `<p style="color: var(--danger);"">${localResult.Error}</p>`
+                  : `<p style="color: var(--success);">Correct!</p>`
+              }
+            </div>`,
         footer: `<a href="/cases/${suiteName}/${caseName}" target="_blank">View test case</a>`,
         grow: "fullscreen",
         didOpen(swalDom) {

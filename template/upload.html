@@ -46,9 +46,6 @@
 </table>
 <script>
   async function downloadSuite(suiteName) {
-    if (typeof galite !== "undefined") {
-      galite("send", "event", "upload", "download", suiteName);
-    }
     const el = document.createElement("a");
     el.setAttribute("href", `/case-archives/${suiteName}.zip`);
     el.setAttribute("download", "");
@@ -68,9 +65,6 @@
       confirmButtonText: "Tới luôn đê!",
       preConfirm: (login) => {
         NProgress.start();
-        if (typeof galite !== "undefined") {
-          galite("send", "event", "upload", "delete", suiteName);
-        }
         return fetch(`/upload/${suiteName}`, { method: "DELETE" }).then(
           (response) => response.json()
         );
