@@ -78,7 +78,7 @@ func DeleteSuite(suiteName string) error {
 	err = os.RemoveAll(suiteDir)
 
 	if err != nil {
-		log.Println("removed test case " + suiteName)
+		log.Println("removed test case: " + suiteName)
 	}
 
 	return err
@@ -150,7 +150,7 @@ func AddSuite(fileName string, file multipart.File) error {
 		}
 	}
 
-	log.Println("added test case " + suiteName)
+	log.Println("added test case: " + suiteName)
 
 	return nil
 }
