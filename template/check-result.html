@@ -8,7 +8,7 @@
       border-radius: 8px;
       display: inline-block;
       margin-right: 12px;
-      width: 48px;
+      width: 70px;
       text-align: center;
     }
     .run-btn {
@@ -103,7 +103,7 @@
       <label for="show-option-incorrect">Hiện những case sai</label>
     </div>
     <blockquote id="result-stat">
-      Nhấn <b>Run All</b> để chạy tất cả các test hoặc <b>Run</b> để chạy từng
+      Nhấn <b>Chạy tất cả</b> để chạy tất cả các test hoặc <b>Chạy test</b> để chạy từng
       test
     </blockquote>
     <p>
@@ -112,7 +112,7 @@
         style="width: auto"
         href="javascript:runAllCases()"
         class="run-btn"
-        >Run All</a
+        >Chạy tất cả</a
       >
     </p>
     <table id="table">
@@ -120,7 +120,7 @@
         <tr>
           <th>Name</th>
           <th>Result</th>
-          <th style="width: 124px">Action</th>
+          <th style="width: 200px;">Action</th>
         </tr>
       </thead>
       <tbody>
@@ -129,9 +129,9 @@
           <td>{{ . }}</td>
           <td class="table-result"></td>
           <td>
-            <a href="javascript:runCases(['{{ . }}'])" class="run-btn">Run</a>
-            <a href="javascript:viewCase('{{ . }}')" class="view-btn">Result</a>
-            <a target="_blank" href="/cases/{{ $name }}/{{ . }}">View</a>
+            <a href="javascript:runCases(['{{ . }}'])" class="run-btn">Chạy test</a>
+            <a href="javascript:viewCase('{{ . }}')" class="view-btn">Kết quả</a>
+            <a target="_blank" href="/cases/{{ $name }}/{{ . }}">Xem input</a>
           </td>
         </tr>
         {{ end }}
@@ -303,7 +303,7 @@
                   : `<p style="color: var(--success);">Correct!</p>`
               }
             </div>`,
-        footer: `<a href="/cases/${suiteName}/${caseName}" target="_blank">View test case</a>`,
+        footer: `<a href="/cases/${suiteName}/${caseName}" target="_blank">Xem input</a>`,
         grow: "fullscreen",
         didOpen(swalDom) {
           const showDiffCb = swalDom.querySelector("#show-diff");
