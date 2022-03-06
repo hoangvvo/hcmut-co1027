@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"html/template"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -97,7 +99,12 @@ func setSess(w http.ResponseWriter, compileRes *runner.CompileResult) error {
 	return nil
 }
 
+var testId = 0 // FIXME: concurrency issue
+
 func CheckTestPostHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	testId += 1
+	l := log.New(os.Stdout, "test "+strconv.Itoa(testId)+": ", log.LstdFlags)
+
 	compileRes := readSess(w, r)
 	if compileRes == nil {
 		sendResponseErr(w, http.StatusBadRequest, errors.New("no session"))
@@ -114,6 +121,7 @@ func CheckTestPostHandler(w http.ResponseWriter, r *http.Request, _ httprouter.P
 
 	var CaseDirs []string
 	if urlQuery.Has("all") {
+		l.Println(compileRes.SuiteName + ": test all")
 		dirEntries, err := os.ReadDir(suiteDir)
 		if err != nil {
 			sendResponseErr(w, http.StatusInternalServerError, err)
@@ -126,6 +134,7 @@ func CheckTestPostHandler(w http.ResponseWriter, r *http.Request, _ httprouter.P
 		}
 	} else {
 		caseNames := strings.Split(urlQuery.Get("cases"), ",")
+		l.Println(compileRes.SuiteName + ": test " + strconv.Itoa(len(caseNames)) + " cases")
 		for _, caseName := range caseNames {
 			CaseDirs = append(CaseDirs, filepath.Join(suiteDir, caseName))
 		}
@@ -141,6 +150,10 @@ func CheckTestPostHandler(w http.ResponseWriter, r *http.Request, _ httprouter.P
 		sendResponseErr(w, http.StatusInternalServerError, err)
 		return
 	}
+
+	execTime := executionTimeEnd.UnixMilli() - executionTimeStart.UnixMilli()
+
+	l.Println("done in " + strconv.Itoa(int(execTime)) + "ms")
 
 	correctCount := 0
 	for _, result := range results {
@@ -159,7 +172,7 @@ func CheckTestPostHandler(w http.ResponseWriter, r *http.Request, _ httprouter.P
 	err = json.NewEncoder(w).Encode(CheckResult{
 		Total:         total,
 		Correct:       correctCount,
-		ExecutionTime: executionTimeEnd.UnixMilli() - executionTimeStart.UnixMilli(),
+		ExecutionTime: execTime,
 		Results:       results,
 	})
 
@@ -185,6 +198,8 @@ func CheckDeleteHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Par
 	sendResponseSuccess(w)
 }
 
+var compileId = 0 // FIXME: concurrency issue
+
 func CheckCompileHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	sess := readSess(w, r)
 	if sess != nil {
@@ -193,24 +208,31 @@ func CheckCompileHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 		setSess(w, nil)
 	}
 
-	answer := r.FormValue("answer")
-	suiteName := r.FormValue("suite")
+	answer := strings.TrimSpace(r.FormValue("answer"))
+	answerFileName := strings.TrimSpace(r.FormValue("answer-filename"))
+	suiteName := strings.TrimSpace(r.FormValue("suite"))
 
 	if answer == "" || suiteName == "" {
 		sendResponseErr(w, http.StatusBadRequest, errors.New("invalid input"))
 		return
 	}
 
-	testSuites, err := runner.GetSuites()
-	if err != nil {
-		sendResponseErr(w, http.StatusInternalServerError, err)
-		return
-	}
+	compileId += 1
+	l := log.New(os.Stdout, "compile "+strconv.Itoa(testId)+": ", log.LstdFlags)
 
-	compiledRes, err := runner.Compile(answer, suiteName)
+	executionTimeStart := time.Now()
 
-	// error happen, just render normally
+	compiledRes, err := runner.Compile(answer, answerFileName, suiteName)
+
+	executionTimeEnd := time.Now()
+
+	// error happen, just render normally with error message
 	if err != nil {
+		testSuites, err := runner.GetSuites()
+		if err != nil {
+			sendResponseErr(w, http.StatusInternalServerError, err)
+			return
+		}
 		if err := tempCheck.Execute(w, DataCheck{
 			Suites: testSuites,
 			Error:  err,
@@ -220,6 +242,10 @@ func CheckCompileHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 		}
 		return
 	}
+
+	execTime := executionTimeEnd.UnixMilli() - executionTimeStart.UnixMilli()
+
+	l.Println("done in " + strconv.Itoa(int(execTime)) + "ms")
 
 	// set session
 	if err = setSess(w, compiledRes); err != nil {

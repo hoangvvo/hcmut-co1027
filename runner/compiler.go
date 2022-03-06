@@ -35,14 +35,12 @@ func DeleteCompiled(runDir string) error {
 	return os.RemoveAll(runDir)
 }
 
+var lRun = log.New(os.Stdout, "run: ", log.LstdFlags)
+
 func Run(runDir string, caseDirs []string) ([]Result, error) {
-	l := log.New(os.Stdout, "run/runDir: ", log.Lshortfile)
-
-	l.Println("running " + fmt.Sprint(len(caseDirs)) + " cases")
-
 	_, err := os.Stat(runDir)
 	if err != nil {
-		l.Println(err)
+		lRun.Println(err)
 		return nil, err
 	}
 
@@ -56,7 +54,7 @@ func Run(runDir string, caseDirs []string) ([]Result, error) {
 				return cp.Replace
 			},
 		}); err != nil {
-			l.Println(err)
+			lRun.Println(err)
 			return nil, err
 		}
 
@@ -64,7 +62,7 @@ func Run(runDir string, caseDirs []string) ([]Result, error) {
 
 		testOutput, err := os.ReadFile(filepath.Join(caseDir, "output.txt"))
 		if err != nil {
-			l.Println(err)
+			lRun.Println(err)
 			return nil, err
 		}
 		result.ResultExpected = preformat(string(testOutput))
@@ -107,7 +105,7 @@ type CompileResult struct {
 	SuiteName string
 }
 
-func Compile(answer string, suiteName string) (*CompileResult, error) {
+func Compile(answer string, answerFileName string, suiteName string) (*CompileResult, error) {
 	suiteName = fileNameWithoutExtSliceNotation(filepath.Base(suiteName)) // prevent malicious paths
 	suiteDir := filepath.Join(conf.SuitesDir, suiteName)
 
@@ -130,7 +128,7 @@ func Compile(answer string, suiteName string) (*CompileResult, error) {
 		return nil, err
 	}
 
-	studyInPinkHPath := filepath.Join(wd, "studyInPink2.h")
+	studyInPinkHPath := filepath.Join(wd, answerFileName)
 	if err = os.WriteFile(studyInPinkHPath, []byte(answer), 0644); err != nil {
 		return nil, err
 	}

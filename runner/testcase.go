@@ -3,7 +3,6 @@ package runner
 import (
 	"errors"
 	"io"
-	"log"
 	"mime/multipart"
 	"os"
 	"os/exec"
@@ -92,14 +91,13 @@ func writeFile(filePath string, file multipart.File) error {
 	_, err = io.Copy(dst, file)
 	return err
 }
+
 func AddSuite(fileName string, file multipart.File) error {
-	l := log.New(os.Stdout, "addSuite/fileName: ", log.Lshortfile)
 
 	suiteName := fileNameWithoutExtSliceNotation(filepath.Base(fileName))
 	suiteDir := filepath.Join(conf.SuitesDir, suiteName)
 
 	if _, err := os.Stat(suiteDir); !errors.Is(err, os.ErrNotExist) {
-		l.Println("existed")
 		return errors.New("test suite with with the name " + suiteName + " has already existed")
 	}
 
@@ -107,7 +105,6 @@ func AddSuite(fileName string, file multipart.File) error {
 	zipPath := filepath.Join(conf.ArchiveDir, fileName)
 	err := writeFile(zipPath, file)
 	if err != nil {
-		l.Println(err)
 		os.RemoveAll(suiteDir)
 		return err
 	}
@@ -115,7 +112,6 @@ func AddSuite(fileName string, file multipart.File) error {
 	// unzip
 	_, err = unzip.New().Extract(zipPath, suiteDir)
 	if err != nil {
-		l.Println(err.Error())
 		// fail, remove all
 		os.RemoveAll(suiteDir)
 		return err
@@ -125,7 +121,6 @@ func AddSuite(fileName string, file multipart.File) error {
 	// loop each dirs because arg can be very long for dos2unix
 	dirEntries, err := os.ReadDir(suiteDir)
 	if err != nil {
-		l.Println(err)
 	} else {
 		for _, entry := range dirEntries {
 			if entry.IsDir() {
@@ -133,8 +128,6 @@ func AddSuite(fileName string, file multipart.File) error {
 			}
 		}
 	}
-
-	l.Println("success")
 
 	return nil
 }
