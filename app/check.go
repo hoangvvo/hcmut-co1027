@@ -212,7 +212,7 @@ func CheckCompileHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 	answerFileName := strings.TrimSpace(r.FormValue("answer-filename"))
 	suiteName := strings.TrimSpace(r.FormValue("suite"))
 
-	if answer == "" || suiteName == "" {
+	if answer == "" || answerFileName == "" || suiteName == "" {
 		sendResponseErr(w, http.StatusBadRequest, errors.New("invalid input"))
 		return
 	}
@@ -228,8 +228,8 @@ func CheckCompileHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 
 	// error happen, just render normally with error message
 	if err != nil {
-		testSuites, err := runner.GetSuites()
-		if err != nil {
+		testSuites, errGet := runner.GetSuites()
+		if errGet != nil {
 			sendResponseErr(w, http.StatusInternalServerError, err)
 			return
 		}
