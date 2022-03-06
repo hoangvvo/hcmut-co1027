@@ -25,6 +25,7 @@
     <label>Bộ test case</label>
     <p>Chọn bộ test case để sử dụng.</p>
     <select id="select-suite" name="suite" required>
+      <option hidden disabled selected value>(Chọn một bộ test)</option>
       {{ range .Suites }}
       <option value="{{ .Name }}">{{ .Name }} ({{ .Total }} test cases)</option>
       {{ end }}
@@ -53,6 +54,9 @@
   let loading = false;
   const form = document.querySelector("#form");
   form.onsubmit = function submit(event) {
+    if (event.target.suite) {
+
+    }
     if (loading === true) {
       event.preventDefault();
     } else {
